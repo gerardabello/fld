@@ -1,0 +1,5 @@
+/home/gabello/Code/pfc_gas/build/CMakeFiles/distclean.dir
+/home/gabello/Code/pfc_gas/build/CMakeFiles/doc.dir
+/home/gabello/Code/pfc_gas/build/src/CMakeFiles/fld.dir
+/home/gabello/Code/pfc_gas/build/src/examples/CMakeFiles/fld_test.dir
+/home/gabello/Code/pfc_gas/build/CMakeFiles/uninstall.dir

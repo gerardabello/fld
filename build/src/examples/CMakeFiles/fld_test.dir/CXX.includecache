@@ -1,0 +1,24 @@
+#IncludeRegexLine: ^[ 	]*#[ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+../src/./fld.h
+iostream
+-
+fstream
+-
+opencv2/contrib.hpp
+../src/./opencv2/contrib.hpp
+opencv2/highgui.hpp
+../src/./opencv2/highgui.hpp
+opencv2/nonfree.hpp
+../src/./opencv2/nonfree.hpp
+
+/home/gabello/Code/pfc_gas/src/examples/fld_test.cpp
+fld.h
+/home/gabello/Code/pfc_gas/src/examples/fld.h
+

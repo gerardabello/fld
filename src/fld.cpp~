@@ -1,0 +1,192 @@
+#include "fld.h"
+
+CFld::CFld()
+{
+}
+ 
+CFld::~CFld()
+{
+}
+
+
+
+bool openMatFileIfExists(string path, Mat &data){
+    std::ifstream file(path.c_str());
+    if(file.is_open()) {
+        cout << path << ": Data Already Present" <<
+            std::endl;
+
+        file.close();
+
+        cv::FileStorage fs;    
+
+        //load in vocab training data
+        fs.open(path, cv::FileStorage::READ);
+        fs["Data"] >> data;
+        if (data.empty()) {
+            std::cerr << path << ": Data is empty" <<
+                std::endl;
+            return false;
+        }
+        fs.release();
+
+        return true;
+    }
+
+    return false;
+}
+
+
+bool saveMatFile(string path, const Mat &data){
+
+    cv::FileStorage fs;    
+
+    //save the vocabulary
+    std::cout << "Saving Data" << std::endl;
+    fs.open(path, cv::FileStorage::WRITE);
+    fs << "Data" << data;
+    fs.release();
+
+}
+
+
+bool genData(const Ptr<FeatureDetector> &detector, BOWImgDescriptorExtractor &bide, const Mat &frame, Mat &data){
+    Mat bow;
+    vector<KeyPoint> kpts;
+
+
+    detector->detect(frame, kpts);
+
+    bide.compute(frame, kpts, bow);
+    data.push_back(bow);
+}
+
+
+bool genDataVideo(const Ptr<FeatureDetector> &detector, BOWImgDescriptorExtractor &bide, VideoCapture &cap, Mat &data, int steps){
+    if ( !data.empty() )  // if not success, exit program
+    {
+        cout << "data is not empty" << endl;
+        return false;
+    }
+
+    if ( !cap.isOpened() )  // if not success, exit program
+    {
+        cout << "Cannot open the video file" << endl;
+        return false;
+    }
+
+    int i = 0;
+
+    Mat vframe;
+
+    while(1)
+    {
+        i++;
+
+
+        bool bSuccess = cap.read(vframe); // read a new frame from video
+
+        if (!bSuccess) //if not success, break loop
+        {
+            cout << "Cannot read the frame from video file" << endl;
+            break;
+        }
+
+        if(i%steps==0){
+
+            /*imshow("MyVideo", vframe); //show the frame in "MyVideo" window
+
+              if(waitKey(30) == 27) //wait for 'esc' key press for 30 ms. If 'esc' key is pressed, break loop
+              {
+              cout << "esc key is pressed by user" << endl;
+              break; 
+              }
+
+*/
+            genData(detector,bide,vframe,data);
+
+        }
+
+    }
+
+    return true;
+
+}
+
+
+bool genVocabData(const Ptr<FeatureDetector> &detector, const Ptr<DescriptorExtractor> &extractor, VideoCapture &cap, Mat &data, int steps){
+    if ( !data.empty() )  // if not success, exit program
+    {
+        cout << "data is not empty" << endl;
+        return false;
+    }
+
+    if ( !cap.isOpened() )  // if not success, exit program
+    {
+        cout << "Cannot open the video file" << endl;
+        return false;
+    }
+
+    int i = 0;
+
+    Mat vframe, descs;
+
+    vector<KeyPoint> kpts;
+
+    while(1)
+    {
+        i++;
+
+
+        bool bSuccess = cap.read(vframe); // read a new frame from video
+
+        if (!bSuccess) //if not success, break loop
+        {
+            cout << "Cannot read the frame from video file" << endl;
+            break;
+        }
+
+        if(i%steps==0){
+
+            /*imshow("MyVideo", vframe); //show the frame in "MyVideo" window
+
+              if(waitKey(30) == 27) //wait for 'esc' key press for 30 ms. If 'esc' key is pressed, break loop
+              {
+              cout << "esc key is pressed by user" << endl;
+              break; 
+              }
+
+*/
+            //detect & extract features
+            detector->detect(vframe, kpts);
+            extractor->compute(vframe, kpts, descs);
+
+            //add all descriptors to the training data
+            data.push_back(descs);
+
+
+        }
+
+    }
+
+    return true;
+
+}
+
+Mat genVocab(const Ptr<FeatureDetector> &detector, const Ptr<DescriptorExtractor> &extractor, VideoCapture &cap, int steps, float radius){
+    Mat vocabTrainData;
+
+
+    genVocabData(detector,extractor, cap, vocabTrainData,steps);
+
+    cout << "Performing clustering" << std::endl;
+
+    //uses Modified Sequential Clustering to train a vocabulary
+    of2::BOWMSCTrainer trainer(radius);
+    trainer.add(vocabTrainData);
+    return trainer.cluster();
+}
+
+
+
+

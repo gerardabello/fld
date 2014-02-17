@@ -1,0 +1,14 @@
+#IncludeRegexLine: ^[ 	]*#[ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/gabello/Code/pfc_gas/src/fld.cpp
+fld.h
+/home/gabello/Code/pfc_gas/src/fld.h
+
+/home/gabello/Code/pfc_gas/src/fld.h
+
