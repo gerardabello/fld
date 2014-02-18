@@ -40,13 +40,28 @@ bool saveMatFile(string path, const Mat &data){
 
 }
 
+void testStrech(CFld *test){
 
-int main(int argc, char *argv[])
-{
-    CFld *test;
+    string imgDir = "../dat/";
 
-    test = new CFld();
+    vector<Mat> images;
+    images.push_back(imread(imgDir+"roofs1.jpg" , IMREAD_COLOR));
+    images.push_back(imread(imgDir+"roofs2.jpg" , IMREAD_COLOR));
+    /*images.push_back(imread(imgDir+"fr.jpg" , IMREAD_COLOR));
+    images.push_back(imread(imgDir+"rr.jpg" , IMREAD_COLOR));
+    images.push_back(imread(imgDir+"rl.jpg" , IMREAD_COLOR));*/
 
+
+    Mat pano;
+    pano = test->createPano(images, false);
+
+
+    namedWindow( "Pano", WINDOW_AUTOSIZE ); // Create a window for display.
+    imshow( "Pano", pano );                // Show our image inside it.
+    waitKey(500);
+}
+
+void testFabmap(CFld *test){
     string dataDir = "../dat/fabmap/";
 
 
@@ -103,7 +118,7 @@ int main(int argc, char *argv[])
             result = test->getMatrix();
 
             imshow("Confusion Matrix", result);
-           
+
 
         }
 
@@ -114,6 +129,19 @@ int main(int argc, char *argv[])
 
 
     waitKey();
+
+
+}
+
+
+int main(int argc, char *argv[])
+{
+    CFld *test;
+
+    test = new CFld();
+
+    //testFabmap(test);
+    testStrech(test);
 
 
     return 0;

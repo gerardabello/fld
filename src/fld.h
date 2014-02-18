@@ -4,7 +4,7 @@
 #include <iostream>
 #include <fstream>
 
-
+#include "opencv2/stitching.hpp"
 #include "opencv2/contrib.hpp"
 #include "opencv2/highgui.hpp"
 #include "opencv2/nonfree.hpp"
@@ -80,7 +80,7 @@ class CFld
 
     Mat getMatrix();
 
-
+    Mat createPano(vector<Mat> &imgs, bool rotate);
 
   private:
     Ptr<FeatureDetector> detector;
@@ -109,6 +109,12 @@ class CFld
     bool genVocabData(const Ptr<FeatureDetector> &detector, const Ptr<DescriptorExtractor> &extractor, VideoCapture &cap, Mat &data, int steps);
     Mat genVocab(const Ptr<FeatureDetector> &detector, const Ptr<DescriptorExtractor> &extractor, VideoCapture &cap, int steps, float radius);
 
+
+
+
+    vector<Mat>* rotate_vector(vector<Mat> &imgs, int angle);
+
+    void rotate_image(cv::Mat &src, cv::Mat &dst, int angle);
 };
 
 #endif

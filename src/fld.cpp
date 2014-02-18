@@ -253,4 +253,101 @@ Mat CFld::genVocab(const Ptr<FeatureDetector> &detector, const Ptr<DescriptorExt
 
 
 
+Mat CFld::createPano(vector<Mat> &imgs, bool rotate){
+
+    Mat pano;
+    Stitcher::Status status;
+
+    if(rotate){
+        vector<Mat> *list;
+        list = rotate_vector(imgs,90);
+
+
+        vector<Mat>::iterator l;
+        Mat temp;
+
+
+
+        namedWindow( "Pano2", WINDOW_AUTOSIZE ); // Create a window for display.
+        for(l = list->begin(); l != list->end(); l++) {
+
+            imshow( "Pano2", *l);                // Show our image inside it.
+            waitKey(500);
+
+        }
+
+
+
+        Stitcher stitcher = Stitcher::createDefault();
+        status = stitcher.stitch(*list, pano);
+
+
+        delete list;
+    }else{
+        Stitcher stitcher = Stitcher::createDefault();
+        status = stitcher.stitch(imgs, pano);
+
+    }
+
+
+    if (status != Stitcher::OK)
+    {
+        cout << "Can't stitch images, error code = " << int(status) << endl;
+    }
+
+
+    return pano;
+}
+
+vector<Mat>* CFld::rotate_vector(vector<Mat> &imgs, int angle){
+    vector<Mat>* rotated = new vector<Mat>();
+
+    vector<Mat>::iterator l;
+    Mat temp;
+    for(l = imgs.begin(); l != imgs.end(); l++) {
+        rotate_image(*l,temp,angle);
+        rotated->push_back(temp);
+    }
+
+    return rotated;
+}
+
+
+
+
+/*
+ *@brief rotate image by factor of 90 degrees
+ *
+ *@param source : input image
+ *@param dst : output image
+ *@param angle : factor of 90, even it is not factor of 90, the angle
+ * will be mapped to the range of [-360, 360].
+ * {angle = 90n; n = {-4, -3, -2, -1, 0, 1, 2, 3, 4} }
+ * if angle bigger than 360 or smaller than -360, the angle will
+ * be map to -360 ~ 360.
+ * mapping rule is : angle = ((angle / 90) % 4) * 90;
+ *
+ * ex : 89 will map to 0, 98 to 90, 179 to 90, 270 to 3, 360 to 0.
+ *
+ */
+
+void CFld::rotate_image(cv::Mat &src, cv::Mat &dst, int angle)
+{   
+    if(src.data != dst.data){
+        src.copyTo(dst);
+    }
+
+    angle = ((angle / 90) % 4) * 90;
+
+    //0 : flip vertical; 1 flip horizontal
+    bool const flip_horizontal_or_vertical = angle > 0 ? 1 : 0;
+    int const number = std::abs(angle / 90);          
+
+    for(int i = 0; i != number; ++i){
+        cv::transpose(dst, dst);
+        cv::flip(dst, dst, flip_horizontal_or_vertical);
+    }
+}
+
+
 
