@@ -47,7 +47,7 @@ int main(int argc, char *argv[])
 
     test = new CFld();
 
-    string dataDir = "fabmap/";
+    string dataDir = "../dat/fabmap/";
 
 
     Mat vocab;
@@ -61,13 +61,62 @@ int main(int argc, char *argv[])
     }else{
 
         cout << "Vocab loaded from file" << endl;
+        test->addVocabulary(vocab);
     }
 
 
     VideoCapture cap_train(dataDir + string("stlucia_train.avi")); // open the video file for reading
 
+    test->addTrainVideo(cap_train);
+
 
     VideoCapture cap(dataDir + string("stlucia_test.avi")); // open the video file for reading
+
+    int i = 0;
+    int steps = 10;
+    while(1)
+    {
+        i++;
+
+        Mat vframe;
+
+        bool bSuccess = cap.read(vframe); // read a new frame from video
+
+        if (!bSuccess) //if not success, break loop
+        {
+            cout << "Cannot read the frame from video file" << endl;
+            break;
+        }
+
+        if(i%steps==0){
+
+            imshow("MyVideo", vframe); //show the frame in "MyVideo" window
+
+            if(waitKey(30) == 27) //wait for 'esc' key press for 30 ms. If 'esc' key is pressed, break loop
+            {
+                cout << "esc key is pressed by user" << endl;
+                break; 
+            }
+
+            test->addFrame(vframe);
+            Mat result;
+            result = test->getMatrix();
+
+            imshow("Confusion Matrix", result);
+           
+
+        }
+
+    }
+
+
+
+
+
+    waitKey();
+
+
+    return 0;
 }
 
 

@@ -103,8 +103,8 @@ class CFld
 
     int iniFabMap();
 
-    bool genData(const Ptr<FeatureDetector> &detector, BOWImgDescriptorExtractor &bide, const Mat &frame, Mat &data);
-    bool genDataVideo(const Ptr<FeatureDetector> &detector, BOWImgDescriptorExtractor &bide, VideoCapture &cap, Mat &data, int steps);
+    bool genData(const Ptr<FeatureDetector> &detector, BOWImgDescriptorExtractor *bide, const Mat &frame, Mat &data);
+    bool genDataVideo(const Ptr<FeatureDetector> &detector, BOWImgDescriptorExtractor *bide, VideoCapture &cap, Mat &data, int steps);
 
     bool genVocabData(const Ptr<FeatureDetector> &detector, const Ptr<DescriptorExtractor> &extractor, VideoCapture &cap, Mat &data, int steps);
     Mat genVocab(const Ptr<FeatureDetector> &detector, const Ptr<DescriptorExtractor> &extractor, VideoCapture &cap, int steps, float radius);

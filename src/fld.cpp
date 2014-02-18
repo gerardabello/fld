@@ -8,6 +8,7 @@ CFld::CFld(){
             new SurfDescriptorExtractor(1000, 4, 2, false, true));
     matcher = DescriptorMatcher::create("FlannBased");
 
+
     bide = new BOWImgDescriptorExtractor(extractor, matcher);
 
 
@@ -46,7 +47,7 @@ void CFld::addFrame(Mat frame){
 
     Mat fData;
 
-    genData(detector,*bide,frame,fData);
+    genData(detector,bide,frame,fData);
 
     vector<of2::IMatch> imatches;
     fabmap->compare(fData, imatches, true);
@@ -58,7 +59,7 @@ void CFld::addFrame(Mat frame){
 Mat CFld::getMatrix(){
     Mat matrix;
 
-    matrix = Mat::zeros(iframe, iframe, CV_8UC1);
+    matrix = Mat::zeros(matches.size()+1, matches.size()+1, CV_8UC1);
 
     int j = 0;
 
@@ -85,22 +86,22 @@ Mat CFld::getMatrix(){
 /*Mat CFld::addTrainImgVec(vector<Mat>& imgs){
 
 
-}
-*/
+  }
+  */
 
 Mat CFld::addTrainVideo(VideoCapture& vc){
     Mat td;
-    CFld::genDataVideo(detector,*bide,vc,td,20);
+    CFld::genDataVideo(detector,bide,vc,td,20);
     addTrainData(td);
     return td;
 }
 
 /*
-Mat CFld::addVocabImgVec(vector<Mat>& imgs){
+   Mat CFld::addVocabImgVec(vector<Mat>& imgs){
 
 
-}
-*/
+   }
+   */
 
 Mat CFld::addVocabVideo(VideoCapture& vc){
     Mat v;
@@ -111,21 +112,21 @@ Mat CFld::addVocabVideo(VideoCapture& vc){
 
 
 
-bool CFld::genData(const Ptr<FeatureDetector> &detector, BOWImgDescriptorExtractor &bide, const Mat &frame, Mat &data){
+bool CFld::genData(const Ptr<FeatureDetector> &detector, BOWImgDescriptorExtractor *bide, const Mat &frame, Mat &data){
     Mat bow;
     vector<KeyPoint> kpts;
 
-
     detector->detect(frame, kpts);
 
-    bide.compute(frame, kpts, bow);
+    bide->compute(frame, kpts, bow);
+
     data.push_back(bow);
 
     return true;
 }
 
 
-bool CFld::genDataVideo(const Ptr<FeatureDetector> &detector, BOWImgDescriptorExtractor &bide, VideoCapture &cap, Mat &data, int steps){
+bool CFld::genDataVideo(const Ptr<FeatureDetector> &detector, BOWImgDescriptorExtractor *bide, VideoCapture &cap, Mat &data, int steps){
     if ( !data.empty() )  // if not success, exit program
     {
         cout << "data is not empty" << endl;
