@@ -85,10 +85,9 @@ class CFld
      */
     Mat getMatrix();
 
-
     Mat createPano(vector<Mat> &imgs, bool rotate);
 
-
+    bool geometricCheck( Mat &img1, Mat &img2 , float maxSigma);
 
   private:
     Ptr<FeatureDetector> detector;
