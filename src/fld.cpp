@@ -45,12 +45,17 @@ int CFld::iniFabMap(){
 void CFld::addFrame(Mat frame){
     iframe++;
 
+    past_images.push_back(frame);
+
     Mat fData;
 
     genData(detector,bide,frame,fData);
 
     vector<of2::IMatch> imatches;
     fabmap->compare(fData, imatches, true);
+
+
+    imatches.erase(remove_if(imatches.begin(), imatches.end(), geometricCheckMatch, imatches.end());
 
     matches.push_back(imatches);
 }
@@ -350,4 +355,60 @@ void CFld::rotate_image(cv::Mat &src, cv::Mat &dst, int angle)
 }
 
 
+bool CFld::geometricCheckMatch(const of2::IMatch & o ){
+    return geometricCheck( past_images.at(o.queryIdx), past_images.at(o.imgIdx), 20);
+}
+
+
+
+bool CFld::geometricCheck( Mat &img1, Mat &img2 , float maxSigma){
+
+    Ptr<FeatureDetector> c_detector = FeatureDetector::create("ORB");
+    Ptr<DescriptorExtractor> c_descriptor = DescriptorExtractor::create("BRIEF");
+    Ptr<DescriptorMatcher> c_matcher = DescriptorMatcher::create("BruteForce-Hamming");
+
+    // detecting keypoints
+    vector<KeyPoint> keypoints1, keypoints2;
+    c_detector->detect(img1, keypoints1);
+    c_detector->detect(img2, keypoints2);
+
+    // computing descriptors
+    Mat descriptors1, descriptors2;
+    c_descriptor->compute(img1, keypoints1, descriptors1);
+    c_descriptor->compute(img2, keypoints2, descriptors2);
+
+    // matching descriptors
+    vector<DMatch> c_matches;
+    c_matcher->match(descriptors1, descriptors2, c_matches);
+
+    vector<float> distances;
+
+    vector<DMatch>::iterator l;
+    for(l = c_matches.begin(); l != c_matches.end(); l++) {
+        distances.push_back(l->distance);
+    }
+
+    double sum = accumulate(std::begin(distances), std::end(distances), 0.0);
+    double m =  sum / distances.size();
+
+    double accum = 0.0;
+    std::for_each (std::begin(distances), std::end(distances), [&](const double d) {
+            accum += (d - m) * (d - m);
+            });
+
+    double stdev = sqrt(accum / (distances.size()-1));
+
+
+    /*
+    // drawing the results
+    namedWindow("matches", 1);
+    Mat img_matches;
+    drawMatches(img1, keypoints1, img2, keypoints2, matches, img_matches);
+    imshow("matches", img_matches);
+    waitKey(0);
+    */
+
+
+    return stdev <= maxSigma;
+}
 

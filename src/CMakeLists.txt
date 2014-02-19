@@ -1,3 +1,8 @@
+ADD_DEFINITIONS(
+    -std=c++0x # Or -std=c++0x
+    # Other flags
+)
+
 # driver source files
 SET(sources fld.cpp)
 # application header files

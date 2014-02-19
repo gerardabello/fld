@@ -102,6 +102,8 @@ class CFld
     Mat trainData;
     Mat vocab;
 
+    vector<Mat> past_images;
+
 
     vector<vector<of2::IMatch> > matches;
 
@@ -117,7 +119,7 @@ class CFld
     Mat genVocab(const Ptr<FeatureDetector> &detector, const Ptr<DescriptorExtractor> &extractor, VideoCapture &cap, int steps, float radius);
 
 
-
+    bool CFld::geometricCheckMatch(const of2::IMatch & o  );
 
     vector<Mat>* rotate_vector(vector<Mat> &imgs, int angle);
 
