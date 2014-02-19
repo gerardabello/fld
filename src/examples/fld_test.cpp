@@ -140,8 +140,8 @@ int main(int argc, char *argv[])
 
     test = new CFld();
 
-    //testFabmap(test);
-    testStrech(test);
+    testFabmap(test);
+    //testStrech(test);
 
 
     return 0;

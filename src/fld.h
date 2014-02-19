@@ -78,9 +78,17 @@ class CFld
      */
     void addFrame(Mat frame);
 
+    /**
+     * Returns the matrix in the scale of 0-255 of the probability of a pair of images beeing of the same place
+     *
+     * @return The matrix
+     */
     Mat getMatrix();
 
+
     Mat createPano(vector<Mat> &imgs, bool rotate);
+
+
 
   private:
     Ptr<FeatureDetector> detector;
