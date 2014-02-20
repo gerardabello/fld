@@ -118,8 +118,6 @@ void testFabmap(CFld *test){
             result = test->getMatrix();
 
             imshow("Confusion Matrix", result);
-
-
         }
 
     }

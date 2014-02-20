@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <fstream>
+#include <math.h>
 
 #include "opencv2/stitching.hpp"
 #include "opencv2/contrib.hpp"
@@ -87,9 +88,14 @@ class CFld
 
     Mat createPano(vector<Mat> &imgs, bool rotate);
 
-    bool geometricCheck( Mat &img1, Mat &img2 , float maxSigma);
+    bool geometricCheck( Mat &img1, Mat &img2);
 
   private:
+
+    float consider_match;
+    float maxSigma;
+
+
     Ptr<FeatureDetector> detector;
     Ptr<DescriptorExtractor> extractor;
     Ptr<DescriptorMatcher> matcher;
@@ -119,11 +125,13 @@ class CFld
     Mat genVocab(const Ptr<FeatureDetector> &detector, const Ptr<DescriptorExtractor> &extractor, VideoCapture &cap, int steps, float radius);
 
 
-    bool CFld::geometricCheckMatch(const of2::IMatch & o  );
+    void geometricCheckMatch(vector<of2::IMatch> & v);
 
     vector<Mat>* rotate_vector(vector<Mat> &imgs, int angle);
 
     void rotate_image(cv::Mat &src, cv::Mat &dst, int angle);
+
+    float slope_kpts(KeyPoint kpt1, KeyPoint kpt2);
 };
 
 #endif

@@ -13,6 +13,12 @@ CFld::CFld(){
 
 
     iframe = 0;
+
+
+
+    //params
+    consider_match = 0.9f;
+    maxSigma = 0.55f;
 }
 
 CFld::~CFld(){
@@ -43,7 +49,6 @@ int CFld::iniFabMap(){
 
 
 void CFld::addFrame(Mat frame){
-    iframe++;
 
     past_images.push_back(frame);
 
@@ -54,10 +59,22 @@ void CFld::addFrame(Mat frame){
     vector<of2::IMatch> imatches;
     fabmap->compare(fData, imatches, true);
 
-
-    imatches.erase(remove_if(imatches.begin(), imatches.end(), geometricCheckMatch, imatches.end());
+    geometricCheckMatch(imatches);
 
     matches.push_back(imatches);
+
+    /*
+
+  
+
+    */
+
+
+
+
+    
+
+    iframe++;
 }
 
 
@@ -87,6 +104,8 @@ Mat CFld::getMatrix(){
 
     return matrix;
 }
+
+
 
 /*Mat CFld::addTrainImgVec(vector<Mat>& imgs){
 
@@ -355,13 +374,30 @@ void CFld::rotate_image(cv::Mat &src, cv::Mat &dst, int angle)
 }
 
 
-bool CFld::geometricCheckMatch(const of2::IMatch & o ){
-    return geometricCheck( past_images.at(o.queryIdx), past_images.at(o.imgIdx), 20);
+void CFld::geometricCheckMatch(vector<of2::IMatch> & v  ){
+    auto remover = remove_if(v.begin(), v.end(), [&](const of2::IMatch & o ) 
+            { 
+            if(o.match > consider_match){
+            cout << o.queryIdx << " - " << o.imgIdx << endl;
+            if(o.imgIdx < 0) {
+            return !geometricCheck( past_images.at(o.queryIdx+iframe), past_images.at(o.queryIdx));
+            } else {
+            return !geometricCheck( past_images.at(o.queryIdx+iframe), past_images.at(o.imgIdx));
+            }
+            }else{
+            return true;
+            }
+
+            });
+
+
+
+    v.erase( remover, v.end());
+
 }
 
 
-
-bool CFld::geometricCheck( Mat &img1, Mat &img2 , float maxSigma){
+bool CFld::geometricCheck( Mat &img1, Mat &img2){
 
     Ptr<FeatureDetector> c_detector = FeatureDetector::create("ORB");
     Ptr<DescriptorExtractor> c_descriptor = DescriptorExtractor::create("BRIEF");
@@ -382,33 +418,50 @@ bool CFld::geometricCheck( Mat &img1, Mat &img2 , float maxSigma){
     c_matcher->match(descriptors1, descriptors2, c_matches);
 
     vector<float> distances;
+    vector<float> angles;
 
     vector<DMatch>::iterator l;
     for(l = c_matches.begin(); l != c_matches.end(); l++) {
+        angles.push_back(slope_kpts(keypoints1.at(l->queryIdx),keypoints2.at(l->trainIdx)));
         distances.push_back(l->distance);
     }
 
-    double sum = accumulate(std::begin(distances), std::end(distances), 0.0);
-    double m =  sum / distances.size();
+
+    vector<float>* test;
+    test = &angles;
+
+    double sum = accumulate(std::begin(*test), std::end(*test), 0.0);
+    double m =  sum / test->size();
 
     double accum = 0.0;
-    std::for_each (std::begin(distances), std::end(distances), [&](const double d) {
+    std::for_each (std::begin(*test), std::end(*test), [&](const double d) {
             accum += (d - m) * (d - m);
             });
 
-    double stdev = sqrt(accum / (distances.size()-1));
+    double stdev = sqrt(accum / (test->size()-1));
 
 
-    /*
+    cout << stdev << " < " << maxSigma << endl;
     // drawing the results
     namedWindow("matches", 1);
     Mat img_matches;
-    drawMatches(img1, keypoints1, img2, keypoints2, matches, img_matches);
+    drawMatches(img1, keypoints1, img2, keypoints2, c_matches, img_matches);
     imshow("matches", img_matches);
     waitKey(0);
-    */
 
 
     return stdev <= maxSigma;
 }
 
+
+float CFld::slope_kpts(KeyPoint kpt1, KeyPoint kpt2){
+    float p1x = kpt1.pt.x;
+    float p1y = kpt1.pt.y;
+    float p2x = kpt2.pt.x;
+    float p2y = kpt2.pt.y;
+
+
+    return atan((p2y-p1y)/(p2x-p1x));
+
+
+}
