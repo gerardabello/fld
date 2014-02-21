@@ -9,6 +9,7 @@ SET(sources fld.cpp)
 SET(headers fld.h)
 # locate the necessary dependencies
 find_package(OpenCV REQUIRED )
+FIND_PACKAGE(MRPT REQUIRED slam;vision;gui;topography)
 # add the necessary include directories
 INCLUDE_DIRECTORIES(.)
 # create the shared library

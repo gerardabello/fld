@@ -63,17 +63,6 @@ void CFld::addFrame(Mat frame){
 
     matches.push_back(imatches);
 
-    /*
-
-  
-
-    */
-
-
-
-
-    
-
     iframe++;
 }
 
@@ -339,21 +328,6 @@ vector<Mat>* CFld::rotate_vector(vector<Mat> &imgs, int angle){
 
 
 
-/*
- *@brief rotate image by factor of 90 degrees
- *
- *@param source : input image
- *@param dst : output image
- *@param angle : factor of 90, even it is not factor of 90, the angle
- * will be mapped to the range of [-360, 360].
- * {angle = 90n; n = {-4, -3, -2, -1, 0, 1, 2, 3, 4} }
- * if angle bigger than 360 or smaller than -360, the angle will
- * be map to -360 ~ 360.
- * mapping rule is : angle = ((angle / 90) % 4) * 90;
- *
- * ex : 89 will map to 0, 98 to 90, 179 to 90, 270 to 3, 360 to 0.
- *
- */
 
 void CFld::rotate_image(cv::Mat &src, cv::Mat &dst, int angle)
 {   
@@ -375,8 +349,7 @@ void CFld::rotate_image(cv::Mat &src, cv::Mat &dst, int angle)
 
 
 void CFld::geometricCheckMatch(vector<of2::IMatch> & v  ){
-    auto remover = remove_if(v.begin(), v.end(), [&](const of2::IMatch & o ) 
-            { 
+    auto remover = remove_if(v.begin(), v.end(), [&](const of2::IMatch & o ) { 
             if(o.match > consider_match){
             cout << o.queryIdx << " - " << o.imgIdx << endl;
             if(o.imgIdx < 0) {
@@ -417,15 +390,20 @@ bool CFld::geometricCheck( Mat &img1, Mat &img2){
     vector<DMatch> c_matches;
     c_matcher->match(descriptors1, descriptors2, c_matches);
 
-    vector<float> distances;
     vector<float> angles;
 
+    
     vector<DMatch>::iterator l;
     for(l = c_matches.begin(); l != c_matches.end(); l++) {
-        angles.push_back(slope_kpts(keypoints1.at(l->queryIdx),keypoints2.at(l->trainIdx)));
-        distances.push_back(l->distance);
+        //if(l->distance <= 15){
+            cout << l->distance << endl;
+            angles.push_back(slope_kpts(keypoints1.at(l->queryIdx),keypoints2.at(l->trainIdx)));
+        //}
     }
 
+    if(angles.size()==0){
+        angles.push_back(99);
+    }
 
     vector<float>* test;
     test = &angles;
@@ -440,15 +418,14 @@ bool CFld::geometricCheck( Mat &img1, Mat &img2){
 
     double stdev = sqrt(accum / (test->size()-1));
 
-
-    cout << stdev << " < " << maxSigma << endl;
+/*
     // drawing the results
     namedWindow("matches", 1);
     Mat img_matches;
     drawMatches(img1, keypoints1, img2, keypoints2, c_matches, img_matches);
     imshow("matches", img_matches);
     waitKey(0);
-
+*/
 
     return stdev <= maxSigma;
 }
