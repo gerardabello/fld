@@ -9,6 +9,7 @@
 #include "opencv2/contrib.hpp"
 #include "opencv2/highgui.hpp"
 #include "opencv2/nonfree.hpp"
+#include "opencv2/calib3d.hpp"
 
 using namespace cv;
 using namespace std;
@@ -148,6 +149,10 @@ class CFld
     void rotate_image(cv::Mat &src, cv::Mat &dst, int angle);
 
     float slope_kpts(KeyPoint kpt1, KeyPoint kpt2);
+
+    float percentilInlinersKpts(vector<KeyPoint> &keyPointsRef, vector<KeyPoint> &keyPoints, vector<DMatch> &all_matches);
+
+    void goodMatches(vector<DMatch> &all_matches, vector<DMatch> &good_matches);
 };
 
 #endif

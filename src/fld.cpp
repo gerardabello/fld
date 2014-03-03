@@ -351,7 +351,7 @@ void CFld::rotate_image(cv::Mat &src, cv::Mat &dst, int angle)
 void CFld::geometricCheckMatch(vector<of2::IMatch> & v  ){
     auto remover = remove_if(v.begin(), v.end(), [&](const of2::IMatch & o ) { 
             if(o.match > consider_match){
-            cout << o.queryIdx << " - " << o.imgIdx << endl;
+            //cout << o.queryIdx << " - " << o.imgIdx << endl;
             if(o.imgIdx < 0) {
             return !geometricCheck( past_images.at(o.queryIdx+iframe), past_images.at(o.queryIdx));
             } else {
@@ -390,13 +390,17 @@ bool CFld::geometricCheck( Mat &img1, Mat &img2){
     vector<DMatch> c_matches;
     c_matcher->match(descriptors1, descriptors2, c_matches);
 
+
+    percentilInlinersKpts(keypoints1, keypoints2, c_matches);
+
+    
     vector<float> angles;
 
     
     vector<DMatch>::iterator l;
     for(l = c_matches.begin(); l != c_matches.end(); l++) {
         //if(l->distance <= 15){
-            cout << l->distance << endl;
+            //cout << l->distance << endl;
             angles.push_back(slope_kpts(keypoints1.at(l->queryIdx),keypoints2.at(l->trainIdx)));
         //}
     }
@@ -418,14 +422,12 @@ bool CFld::geometricCheck( Mat &img1, Mat &img2){
 
     double stdev = sqrt(accum / (test->size()-1));
 
-/*
     // drawing the results
     namedWindow("matches", 1);
     Mat img_matches;
     drawMatches(img1, keypoints1, img2, keypoints2, c_matches, img_matches);
     imshow("matches", img_matches);
     waitKey(0);
-*/
 
     return stdev <= maxSigma;
 }
@@ -441,4 +443,62 @@ float CFld::slope_kpts(KeyPoint kpt1, KeyPoint kpt2){
     return atan((p2y-p1y)/(p2x-p1x));
 
 
+}
+
+float CFld::percentilInlinersKpts(vector<KeyPoint> &keyPoints1, vector<KeyPoint> &keyPoints2, vector<DMatch> &all_matches){
+
+    vector<DMatch> good_matches;
+
+    //goodMatches(all_matches, good_matches);
+
+    good_matches = all_matches;
+
+    std::vector<Point2f> obj;
+    std::vector<Point2f> scene;
+    for( unsigned int i = 0; i < good_matches.size(); i++ )
+    {
+        //-- Get the keypoints from the good matches
+        obj.push_back( keyPoints1[ good_matches[i].queryIdx ].pt );
+        scene.push_back( keyPoints2[ good_matches[i].trainIdx ].pt );
+    }
+
+
+
+    Mat mask;
+
+    Mat H = findHomography( obj, scene, RANSAC , 10, mask);
+
+
+    int size = mask.total();
+
+
+    int ones;
+
+    float a = sum(mask)[0];
+
+    ones = a;
+
+
+    cout << ones << " out of " << size << endl;
+
+    return float(ones)/size;
+
+}
+
+
+void CFld::goodMatches(vector<DMatch> &all_matches, vector<DMatch> &good_matches){
+    float min_dist, max_dist;
+
+    vector<DMatch>::iterator l;
+    for(l = all_matches.begin(); l != all_matches.end(); l++) {
+        double dist = l->distance;
+        if( dist < min_dist ) min_dist = dist;
+        if( dist > max_dist ) max_dist = dist;
+    }
+
+    //-- Draw only "good" matches (i.e. whose distance is less than 3*min_dist )
+    for(l = all_matches.begin(); l != all_matches.end(); l++) {
+        if( l->distance < 3*min_dist )
+        { good_matches.push_back( *l); }
+    }
 }
