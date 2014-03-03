@@ -392,16 +392,17 @@ bool CFld::geometricCheck( Mat &img1, Mat &img2){
 
 
     percentilInlinersKpts(keypoints1, keypoints2, c_matches);
+    compareHistogram(img1, img2);
 
-    
+
     vector<float> angles;
 
-    
+
     vector<DMatch>::iterator l;
     for(l = c_matches.begin(); l != c_matches.end(); l++) {
         //if(l->distance <= 15){
-            //cout << l->distance << endl;
-            angles.push_back(slope_kpts(keypoints1.at(l->queryIdx),keypoints2.at(l->trainIdx)));
+        //cout << l->distance << endl;
+        angles.push_back(slope_kpts(keypoints1.at(l->queryIdx),keypoints2.at(l->trainIdx)));
         //}
     }
 
@@ -421,6 +422,10 @@ bool CFld::geometricCheck( Mat &img1, Mat &img2){
             });
 
     double stdev = sqrt(accum / (test->size()-1));
+
+    cout << "Stdev: " << stdev << endl;
+
+    cout << "-------" << endl;
 
     // drawing the results
     namedWindow("matches", 1);
@@ -501,4 +506,65 @@ void CFld::goodMatches(vector<DMatch> &all_matches, vector<DMatch> &good_matches
         if( l->distance < 3*min_dist )
         { good_matches.push_back( *l); }
     }
+}
+
+
+
+float CFld::compareHistogram(Mat &img1, Mat &img2){
+
+    Mat src_base, hsv_base;
+    Mat src_test1, hsv_test1;
+
+    src_base = img1;
+    src_test1 = img2;
+
+    /// Convert to HSV
+    cvtColor( src_base, hsv_base, COLOR_RGB2HSV );
+    cvtColor( src_test1, hsv_test1, COLOR_RGB2HSV );
+
+    //hsv_half_down = hsv_base( Range( hsv_base.rows/2, hsv_base.rows - 1 ), Range( 0, hsv_base.cols - 1 ) );
+
+    /// Using 30 bins for hue and 32 for saturation
+    int h_bins = 50; int s_bins = 60;
+    int histSize[] = { h_bins, s_bins };
+
+    // hue varies from 0 to 256, saturation from 0 to 180
+    float h_ranges[] = { 0, 256 };
+    float s_ranges[] = { 0, 180 };
+
+    const float* ranges[] = { h_ranges, s_ranges };
+
+    // Use the o-th and 1-st channels
+    int channels[] = { 0, 1 };
+
+    /// Histograms
+    MatND hist_base;
+    MatND hist_half_down;
+    MatND hist_test1;
+    MatND hist_test2;
+
+    /// Calculate the histograms for the HSV images
+    calcHist( &hsv_base, 1, channels, Mat(), hist_base, 2, histSize, ranges, true, false );
+    normalize( hist_base, hist_base, 0, 1, NORM_MINMAX, -1, Mat() );
+
+    /*
+    calcHist( &hsv_half_down, 1, channels, Mat(), hist_half_down, 2, histSize, ranges, true, false );
+    normalize( hist_half_down, hist_half_down, 0, 1, NORM_MINMAX, -1, Mat() );
+    */
+
+    calcHist( &hsv_test1, 1, channels, Mat(), hist_test1, 2, histSize, ranges, true, false );
+    normalize( hist_test1, hist_test1, 0, 1, NORM_MINMAX, -1, Mat() );
+
+    double base_test1;
+
+    /// Apply the histogram comparison methods
+    //double base_base = compareHist( hist_base, hist_base, compare_method );
+    //double base_half = compareHist( hist_base, hist_half_down, compare_method );
+    base_test1 = compareHist( hist_base, hist_test1, 0);
+
+
+    cout << "hist: " << base_test1 << endl;
+
+    return base_test1;
+
 }

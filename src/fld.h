@@ -153,6 +153,9 @@ class CFld
     float percentilInlinersKpts(vector<KeyPoint> &keyPointsRef, vector<KeyPoint> &keyPoints, vector<DMatch> &all_matches);
 
     void goodMatches(vector<DMatch> &all_matches, vector<DMatch> &good_matches);
+
+
+    float compareHistogram(Mat &img1, Mat &img2);
 };
 
 #endif
