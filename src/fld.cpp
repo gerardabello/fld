@@ -1,5 +1,6 @@
 #include "fld.h"
 
+
 CFld::CFld(){
     detector = Ptr<FeatureDetector>(
             new DynamicAdaptedFeatureDetector(
@@ -568,3 +569,230 @@ float CFld::compareHistogram(Mat &img1, Mat &img2){
     return base_test1;
 
 }
+
+
+
+void CFld::calcPose(const Mat &K, const Mat &img1, const Mat &img2, Mat &Pout){
+
+
+
+    //DETECTION ###########################
+
+    Ptr<FeatureDetector> p_detector = FeatureDetector::create("ORB");
+    Ptr<DescriptorExtractor> p_descriptor = DescriptorExtractor::create("BRIEF");
+    Ptr<DescriptorMatcher> p_matcher = DescriptorMatcher::create("BruteForce-Hamming");
+
+    // detecting keypoints
+    vector<KeyPoint> keypoints1, keypoints2;
+    p_detector->detect(img1, keypoints1);
+    p_detector->detect(img2, keypoints2);
+
+    // computing descriptors
+    Mat descriptors1, descriptors2;
+    p_descriptor->compute(img1, keypoints1, descriptors1);
+    p_descriptor->compute(img2, keypoints2, descriptors2);
+
+    // matching descriptors
+    vector<DMatch> p_matches;
+    p_matcher->match(descriptors1, descriptors2, p_matches);
+
+    namedWindow("matches", 1);
+    Mat img_matches;
+    drawMatches(img1, keypoints1, img2, keypoints2, p_matches, img_matches);
+    imshow("matches", img_matches);
+    waitKey(0);
+
+
+    cout << p_matches.size() << endl;
+
+
+    //FI DETECTION ###########################
+
+    Matx34d P;
+    Matx34d P1;
+
+    FindCameraMatrices(K,
+            keypoints1,
+            keypoints2,
+            p_matches,
+            P,
+            P1
+            );
+
+    Pout = Mat(P);
+
+}
+
+
+void CFld::FindCameraMatrices(const Mat& K,
+        const vector<KeyPoint>& kpts1,
+        const vector<KeyPoint>& kpts2,
+        const vector<DMatch> p_matches,
+        Matx34d& P,
+        Matx34d& P1
+        )
+{
+    //KEypoints to point array
+/*
+    vector<Point2f> imgpts1, imgpts2;
+
+    KeyPointsToPoints(kpts1, imgpts1);
+    KeyPointsToPoints(kpts2, imgpts2);
+*/
+
+    vector<Point2f> imgpts1,imgpts2;
+    for( unsigned int i = 0; i < p_matches.size(); i++ )
+    {
+        imgpts1.push_back(kpts1[p_matches[i].queryIdx].pt);
+        imgpts2.push_back(kpts2[p_matches[i].trainIdx].pt);
+    }
+
+
+    cout << imgpts1 << endl;
+    cout << imgpts2 << endl;
+
+
+
+    //Find camera matrices
+
+    //Get Fundamental Matrix
+    vector<uchar> status(imgpts1.size());
+
+    double minVal,maxVal;
+    cv::minMaxIdx(imgpts1,&minVal,&maxVal);
+    Mat F = findFundamentalMat(imgpts1,imgpts2, FM_RANSAC, 0.006 * maxVal, 0.99, status);
+
+
+    //Essential matrix: compute then extract cameras [R|t]
+    Mat_<double> E = K.t() * F * K; //according to HZ (9.12)
+
+
+
+    //FILTER KEYPOINTS
+    //TODO IMPLEMENT THIS
+    /*
+    for (unsigned int i=0; i<status.size(); i++) {
+        if (status[i])
+        {
+            imgpts1_good.push_back(imgpts1_tmp[i]);
+            imgpts2_good.push_back(imgpts2_tmp[i]);
+
+            if (matches.size() <= 0) { //points already aligned...
+                new_matches.push_back(DMatch(matches[i].queryIdx,matches[i].trainIdx,matches[i].distance));
+            } else {
+                new_matches.push_back(matches[i]);
+            }
+
+        }
+    }	
+
+    cout << matches.size() << " matches before, " << new_matches.size() << " new matches after Fundamental Matrix\n";
+*/
+
+
+    /*
+    //decompose E to P' , HZ (9.19)
+    SVD svd(E,SVD::MODIFY_A);
+    Mat svd_u = svd.u;
+    Mat svd_vt = svd.vt;
+    Mat svd_w = svd.w;
+
+    Matx33d W(0,-1,0,//HZ 9.13
+    1,0,0,
+    0,0,1);
+    Mat_<double> R = svd_u * Mat(W) * svd_vt; //HZ 9.19
+    Mat_<double> t = svd_u.col(2); //u3
+
+    if (!CheckCoherentRotation(R)) {
+    cout<<"resulting rotation is not coherent\n";
+    P1 = 0;
+    return;
+    }
+    */
+
+
+    Mat_<double> R1(3,3);
+    Mat_<double> R2(3,3);
+    Mat_<double> t1(1,3);
+    Mat_<double> t2(1,3);
+
+
+    if (!CheckCoherentRotation(R1)) {
+        cout<<"resulting rotation is not coherent\n";
+        P1 = 0;
+        return;
+    }
+
+
+    if (!CheckCoherentRotation(R2)) {
+        cout<<"resulting rotation is not coherent\n";
+        P1 = 0;
+        return;
+    }
+
+
+
+    //decompose E to P' , HZ (9.19)
+    {	
+        if (!DecomposeEtoRandT(E,R1,R2,t1,t2)){
+            cout<<"Error decomposing\n";
+            P1 = 0;
+            return;
+        }
+
+
+
+        P = Matx34d(R1(0,0),R1(0,1),R1(0,2),t1(0),
+                R1(1,0),R1(1,1),R1(1,2),t1(1),
+                R1(2,0),R1(2,1),R1(2,2),t1(2));
+
+        cout << Mat(P) << endl;
+
+
+
+        /*
+
+           P = Matx34d(R1(0,0),R1(0,1),R1(0,2),t2(0),
+           R1(1,0),R1(1,1),R1(1,2),t2(1),
+           R1(2,0),R1(2,1),R1(2,2),t2(2));
+
+           cout << Mat(P) << endl;
+
+
+           P = Matx34d(R2(0,0),R2(0,1),R2(0,2),t1(0),
+           R2(1,0),R2(1,1),R2(1,2),t1(1),
+           R2(2,0),R2(2,1),R2(2,2),t1(2));
+
+           cout << Mat(P) << endl;
+
+
+           P = Matx34d(R2(0,0),R2(0,1),R2(0,2),t2(0),
+           R2(1,0),R2(1,1),R2(1,2),t2(1),
+           R2(2,0),R2(2,1),R2(2,2),t2(2));
+
+           cout << Mat(P) << endl;
+
+*/
+
+    }
+
+}
+
+
+bool CFld::CheckCoherentRotation(cv::Mat_<double>& R) {
+    if(fabsf(determinant(R))-1.0 > 1e-07) {
+        cerr<<"det(R) != +-1.0, this is not a rotation matrix"<<endl;
+        return false; 
+    }
+    return true;
+}
+
+
+void CFld::KeyPointsToPoints(const vector<KeyPoint>& kps, vector<Point2f>& ps) {
+    ps.clear();
+    for (unsigned int i=0; i<kps.size(); i++) ps.push_back(kps[i].pt);
+}
+
+
+
+

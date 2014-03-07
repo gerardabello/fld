@@ -38,6 +38,37 @@ bool saveMatFile(string path, const Mat &data){
     fs << "Data" << data;
     fs.release();
 
+    return true;
+}
+
+
+void testPose(CFld *test){
+
+
+    string imgDir = "../dat/fountain/";
+
+
+    Mat K = (Mat_<double>(3,3) << 919.8266666666666, 0.0, 506.89666666666665, 0.0, 921.8365624999999, 335.7672021484375, 0, 0, 1 );
+
+
+    Mat img1, img2;
+
+    img1 = imread(imgDir+"0001-small.png" , IMREAD_COLOR);
+    img2 = imread(imgDir+"0005-small.png" , IMREAD_COLOR);
+
+
+    namedWindow( "Pano", WINDOW_AUTOSIZE ); // Create a window for display.
+    imshow( "Pano", img1 );                // Show our image inside it.
+    waitKey(500);
+
+    imshow( "Pano", img2 );                // Show our image inside it.
+    waitKey(500);
+
+    Mat P;
+
+    test->calcPose(K, img1, img2, P);
+
+
 }
 
 void testStrech(CFld *test){
@@ -48,8 +79,8 @@ void testStrech(CFld *test){
     images.push_back(imread(imgDir+"roofs1.jpg" , IMREAD_COLOR));
     images.push_back(imread(imgDir+"roofs2.jpg" , IMREAD_COLOR));
     /*images.push_back(imread(imgDir+"fr.jpg" , IMREAD_COLOR));
-    images.push_back(imread(imgDir+"rr.jpg" , IMREAD_COLOR));
-    images.push_back(imread(imgDir+"rl.jpg" , IMREAD_COLOR));*/
+      images.push_back(imread(imgDir+"rr.jpg" , IMREAD_COLOR));
+      images.push_back(imread(imgDir+"rl.jpg" , IMREAD_COLOR));*/
 
 
     Mat pano;
@@ -134,14 +165,18 @@ void testFabmap(CFld *test){
 
 int main(int argc, char *argv[])
 {
+
+    cout << endl << "## Fld Test ##" << endl << endl;
+
     CFld *test;
 
     test = new CFld();
 
-    testFabmap(test);
+    testPose(test);
     //testStrech(test);
 
 
+    cout << endl << "## End ##" << endl << endl;
     return 0;
 }
 

@@ -14,6 +14,8 @@
 using namespace cv;
 using namespace std;
 
+#include "utils.h"
+
 
 class CFld
 {
@@ -91,7 +93,7 @@ class CFld
 
     bool geometricCheck( Mat &img1, Mat &img2);
 
-  private:
+  //private:
 
     float consider_match;
     float maxSigma;
@@ -156,6 +158,22 @@ class CFld
 
 
     float compareHistogram(Mat &img1, Mat &img2);
+    
+    void calcPose(const Mat &K, const Mat &img1, const Mat &img2, Mat &Pout);
+
+    void FindCameraMatrices(const Mat& K,
+            const vector<KeyPoint>& kpts1,
+            const vector<KeyPoint>& kpts2,
+            const vector<DMatch> p_matches,
+            Matx34d& P,
+            Matx34d& P1
+            );
+
+    bool CheckCoherentRotation(cv::Mat_<double>& R);
+
+
+    void KeyPointsToPoints(const vector<KeyPoint>& kps, vector<Point2f>& ps);
+
 };
 
 #endif
