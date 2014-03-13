@@ -15,6 +15,7 @@ using namespace cv;
 using namespace std;
 
 #include "utils.h"
+//#include "mocv/FindCameraMatrices.h"
 
 
 class CFld
