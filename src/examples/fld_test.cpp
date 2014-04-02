@@ -1,5 +1,10 @@
 #include "../fld.h"
 
+#include <iostream>
+#include <string.h>
+
+#include "sfm_test.cpp"
+
 
 bool openMatFileIfExists(string path, Mat &data){
     std::ifstream file(path.c_str());
@@ -163,6 +168,9 @@ void testFabmap(CFld *test){
 }
 
 
+
+
+
 int main(int argc, char *argv[])
 {
 
@@ -172,8 +180,11 @@ int main(int argc, char *argv[])
 
     test = new CFld();
 
-    testPose(test);
+    //testPose(test);
     //testStrech(test);
+    testSfM();
+
+
 
 
     cout << endl << "## End ##" << endl << endl;

@@ -1,4 +1,4 @@
-void TakeSVDOfE(Mat_<double>& E, Mat& svd_u, Mat& svd_vt, Mat& svd_w) {
+void TakeSVDOfE_2(Mat_<double>& E, Mat& svd_u, Mat& svd_vt, Mat& svd_w) {
     //Using OpenCV's SVD
     SVD svd(E,SVD::MODIFY_A);
     svd_u = svd.u;
@@ -12,7 +12,7 @@ void TakeSVDOfE(Mat_<double>& E, Mat& svd_u, Mat& svd_vt, Mat& svd_w) {
 
 
 
-bool DecomposeEtoRandT(
+bool DecomposeEtoRandT_2(
         Mat_<double>& E,
         Mat_<double>& R1,
         Mat_<double>& R2,
@@ -21,7 +21,7 @@ bool DecomposeEtoRandT(
 {
     //Using HZ E decomposition
     Mat svd_u, svd_vt, svd_w;
-    TakeSVDOfE(E,svd_u,svd_vt,svd_w);
+    TakeSVDOfE_2(E,svd_u,svd_vt,svd_w);
 
     //check if first and second singular values are the same (as they should be)
     double singular_values_ratio = fabsf(svd_w.at<double>(0) / svd_w.at<double>(1));

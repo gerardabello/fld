@@ -8,10 +8,14 @@ SET(sources fld.cpp)
 # application header files
 SET(headers fld.h)
 # locate the necessary dependencies
-find_package(OpenCV REQUIRED )
-FIND_PACKAGE(MRPT REQUIRED slam;vision;gui;topography)
+find_package(OpenCV 2.4.8 EXACT REQUIRED )
+#FIND_PACKAGE(MRPT REQUIRED slam;vision;gui;topography)
 # add the necessary include directories
-INCLUDE_DIRECTORIES(.)
+INCLUDE_DIRECTORIES(.
+                    /usr/local/include/opencv2
+                    #/home/gabello/Code/pfc_gas/src/Eigen
+    )
+
 # create the shared library
 ADD_LIBRARY(fld SHARED ${sources})
 # link necessary libraries

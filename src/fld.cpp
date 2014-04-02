@@ -41,8 +41,8 @@ void CFld::addTrainData(Mat td){
 
 
 int CFld::iniFabMap(){
-    fabmap.reset(new of2::FabMap2(tree, 0.39, 0, of2::FabMap::SAMPLED |
-                of2::FabMap::CHOW_LIU));
+    fabmap = new of2::FabMap2(tree, 0.39, 0, of2::FabMap::SAMPLED |
+                of2::FabMap::CHOW_LIU);
     fabmap->addTraining(trainData);
 
     return 0;
@@ -734,7 +734,7 @@ void CFld::FindCameraMatrices(const Mat& K,
 
     //decompose E to P' , HZ (9.19)
     {	
-        if (!DecomposeEtoRandT(E,R1,R2,t1,t2)){
+        if (!DecomposeEtoRandT_2(E,R1,R2,t1,t2)){
             cout<<"Error decomposing\n";
             P1 = 0;
             return;

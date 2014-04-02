@@ -1,15 +1,14 @@
-#ifndef _FLD_H
-#define _FLD_H
+#pragma once
 
 #include <iostream>
 #include <fstream>
 #include <math.h>
 
-#include "opencv2/stitching.hpp"
-#include "opencv2/contrib.hpp"
-#include "opencv2/highgui.hpp"
-#include "opencv2/nonfree.hpp"
-#include "opencv2/calib3d.hpp"
+#include "opencv2/stitching/stitcher.hpp"
+#include "opencv2/contrib/contrib.hpp"
+#include "opencv2/highgui/highgui.hpp"
+#include "opencv2/nonfree/nonfree.hpp"
+#include "opencv2/calib3d/calib3d.hpp"
 
 using namespace cv;
 using namespace std;
@@ -177,5 +176,4 @@ class CFld
 
 };
 
-#endif
 
