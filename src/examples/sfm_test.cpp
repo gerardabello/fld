@@ -21,6 +21,11 @@ Eigen::Affine3d m_global_transform;
 
 float vizScale;
 double scale_cameras_down;
+float r_x,r_y,r_z;
+
+bool drag = false;
+
+int lastx, lasty;
 
 
 void updateGL();
@@ -36,6 +41,7 @@ class sul : public SfMUpdateListener{
                 std::vector<cv::Point3d> pcld_alternate,
                 std::vector<cv::Vec3b> pcldrgb_alternate,
                 std::vector<cv::Matx34d> cameras){
+            vizScale = 0.2;
 
             cout << "Cameras:" << endl;
 
@@ -45,15 +51,15 @@ class sul : public SfMUpdateListener{
                 cout << *l << endl;
             }
 
-
-            cout << "Cameras:" << endl;
+/*
+            cout << "Points:" << endl;
 
 
             vector<Point3d>::iterator li;
             for(li = pcld.begin(); li != pcld.end(); li++) {
                 cout << *li << endl;
             }
-
+*/
 
             //opengl
 
@@ -105,42 +111,84 @@ class sul : public SfMUpdateListener{
 
 void updateGL(){
 
+    //glMatrixMode(GL_PROJECTION);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // Clear color and depth buffers
+    glMatrixMode(GL_MODELVIEW);     // To operate on model-view matrix
+
+    // Render a color-cube consisting of 6 quads with different colors
+    glLoadIdentity();                 // Reset the model-view matrix
+
 
     glPushMatrix();
     glScaled(vizScale,vizScale,vizScale);
-    glMultMatrixd(m_global_transform.data());
+    //glMultMatrixd(m_global_transform.data());
+    //
+    glRotatef(r_x, 1.0f, 0.0f, 0.0f); 
+    glRotatef(r_y, 0.0f, 1.0f, 0.0f); 
+    glRotatef(r_z, 0.0f, 0.0f, 1.0f); 
 
     glPushAttrib(GL_ENABLE_BIT);
     glDisable(GL_LIGHTING);
-    glBegin(GL_POINTS);
-    for (int i = 0; i < m_pcld.size(); ++i) {
-        glColor3ub(m_pcldrgb[i][0],m_pcldrgb[i][1],m_pcldrgb[i][2]);
-        glVertex3dv(&(m_pcld[i].x));
-    }
+
+
+    glBegin(GL_TRIANGLES);
+    glColor3f(0.1, 0.2, 0.3);
+    glVertex3f(0, 0, 0);
+    glVertex3f(1, 0, 0);
+    glVertex3f(0, 1, 0);
     glEnd();
 
-    // glScaled(scale_cameras_down,scale_cameras_down,scale_cameras_down);
-    glEnable(GL_RESCALE_NORMAL);
-    glEnable(GL_LIGHTING);
+
     for (int i = 0; i < m_cameras_transforms.size(); ++i) {
 
         glPushMatrix();
         glMultMatrixd(m_cameras_transforms[i].data());
+        glLineWidth(2.0f);
+
+        glBegin(GL_LINES);
+        glColor3f(1, 0, 0);
+        glVertex3f(0, 0, 0);
+        glVertex3f(1, 0, 0);
+
+        glColor3f(0, 1, 0);
+        glVertex3f(0, 0, 0);
+        glVertex3f(0, 1, 0);
+
+        glColor3f(0, 0, 1);
+        glVertex3f(0, 0, 0);
+        glVertex3f(0, 0, 1);
+        glEnd();
 
         /*
-        glColor4f(1, 0, 0, 1);
-        QGLViewer::drawArrow(qglviewer::Vec(0,0,0), qglviewer::Vec(3,0,0));
-        glColor4f(0, 1, 0, 1);
-        QGLViewer::drawArrow(qglviewer::Vec(0,0,0), qglviewer::Vec(0,3,0));
-        glColor4f(0, 0, 1, 1);
-        QGLViewer::drawArrow(qglviewer::Vec(0,0,0), qglviewer::Vec(0,0,3));
-        */
+           glColor4f(1, 0, 0, 1);
+           QGLViewer::drawArrow(qglviewer::Vec(0,0,0), qglviewer::Vec(3,0,0));
+           glColor4f(0, 1, 0, 1);
+           QGLViewer::drawArrow(qglviewer::Vec(0,0,0), qglviewer::Vec(0,3,0));
+           glColor4f(0, 0, 1, 1);
+           QGLViewer::drawArrow(qglviewer::Vec(0,0,0), qglviewer::Vec(0,0,3));
+           */
 
         glPopMatrix();
     }
 
+
+
+
+
+    glPointSize(2); 
+    glBegin(GL_POINTS);
+    for (int i = 0; i < m_pcld.size(); ++i) {
+        glColor3ub(m_pcldrgb[i][2],m_pcldrgb[i][1],m_pcldrgb[i][0]);
+        //glColor3f(1.0,1.0,1.0);
+        glVertex3f(m_pcld[i].x, m_pcld[i].y,m_pcld[i].z);
+    }
+    glEnd();
+
+
+
     glPopAttrib();
     glPopMatrix();
+
 
 }
 
@@ -181,18 +229,51 @@ void testSfM(){
     distance->RecoverDepthFromImages();
 
 
+    int mx, my;
 
+
+
+    glOrtho(-1.0, 1.0, -1.0, 1.0, 0.1, 1000);
 
     while (window->isOpen())
     {
         sf::Event event;
         while (window->pollEvent(event))
         {
-            if (event.type == sf::Event::Closed)
-                window->close();
+
+            switch (event.type)
+            {
+                case sf::Event::Closed:
+                    window->close();
+                    break;
+
+                case sf::Event::MouseButtonPressed:
+                    drag = true;
+                    break;
+                case sf::Event::MouseButtonReleased:
+                    drag = false;
+                    break;
+                case sf::Event::MouseWheelMoved:
+                    vizScale += (vizScale*0.1)*event.mouseWheel.delta;
+                    break;
+
+
+                default:
+                    break;
+            }
         }
 
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        mx = sf::Mouse::getPosition().x;
+        my = sf::Mouse::getPosition().y;
+
+        if (drag) {
+            r_x += (lasty - my)/4;
+            r_y += (lastx - mx)/4;
+        }
+
+        lastx = mx;
+        lasty = my;
+
         updateGL();
         //window->draw(shape);
         window->display();
