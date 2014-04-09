@@ -78,9 +78,9 @@ class sul : public SfMUpdateListener{
                 }
                 cv::Mat_<double> mean; //cv::reduce(cldm,mean,0,CV_REDUCE_AVG);
                 cv::PCA pca(cldm, mean, CV_PCA_DATA_AS_ROW);
-                scale_cameras_down = 1.0 / (3.0 * sqrt(pca.eigenvalues.at<double> (0)));
+                scale_cameras_down = 1.0;// / (3.0 * sqrt(pca.eigenvalues.at<double> (0)));
                 // std::cout << "emean " << mean << std::endl;
-                // m_global_transform = Eigen::Translation<double,3>(-Eigen::Map<Eigen::Vector3d>(mean[0]));
+                //m_global_transform = Eigen::Translation<double,3>(-Eigen::Map<Eigen::Vector3d>(mean[0]));
             }
 
             //compute transformation to place cameras in world
@@ -90,7 +90,9 @@ class sul : public SfMUpdateListener{
                 Eigen::Matrix<double, 3, 4> P = Eigen::Map<Eigen::Matrix<double, 3, 4,
                     Eigen::RowMajor> >(m_cameras[i].val);
                 Eigen::Matrix3d R = P.block(0, 0, 3, 3);
+                cout << "R:" << R << endl;
                 Eigen::Vector3d t = P.block(0, 3, 3, 1);
+                cout << "T:" << t << endl;
                 Eigen::Vector3d c = -R.transpose() * t;
                 c_sum += c;
                 m_cameras_transforms[i] =
@@ -111,38 +113,40 @@ class sul : public SfMUpdateListener{
 
 void updateGL(){
 
-    //glMatrixMode(GL_PROJECTION);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // Clear color and depth buffers
-    glMatrixMode(GL_MODELVIEW);     // To operate on model-view matrix
 
-    // Render a color-cube consisting of 6 quads with different colors
-    glLoadIdentity();                 // Reset the model-view matrix
-
+    ///////////////////////////////////////////
+    
+    
+    glClearColor(0.1f, 0.15f, 0.2f, 1.0f );
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);	// Clean the screen and the depth buffer
+    glLoadIdentity();									// Reset The Projection Matrix /
 
     glPushMatrix();
-    glScaled(vizScale,vizScale,vizScale);
-    //glMultMatrixd(m_global_transform.data());
-    //
+
     glRotatef(r_x, 1.0f, 0.0f, 0.0f); 
     glRotatef(r_y, 0.0f, 1.0f, 0.0f); 
     glRotatef(r_z, 0.0f, 0.0f, 1.0f); 
 
+    glScaled(vizScale,vizScale,vizScale);
+    glMultMatrixd(m_global_transform.data());
+
     glPushAttrib(GL_ENABLE_BIT);
     glDisable(GL_LIGHTING);
-
-
-    glBegin(GL_TRIANGLES);
-    glColor3f(0.1, 0.2, 0.3);
-    glVertex3f(0, 0, 0);
-    glVertex3f(1, 0, 0);
-    glVertex3f(0, 1, 0);
+    glBegin(GL_POINTS);
+    for (int i = 0; i < m_pcld.size(); ++i) {
+        glColor3ub(m_pcldrgb[i][2],m_pcldrgb[i][1],m_pcldrgb[i][0]);
+        glVertex3dv(&(m_pcld[i].x));
+    }
     glEnd();
 
-
+    // glScaled(scale_cameras_down,scale_cameras_down,scale_cameras_down);
+    glEnable(GL_RESCALE_NORMAL);
+    //glEnable(GL_LIGHTING);
     for (int i = 0; i < m_cameras_transforms.size(); ++i) {
 
         glPushMatrix();
         glMultMatrixd(m_cameras_transforms[i].data());
+
         glLineWidth(2.0f);
 
         glBegin(GL_LINES);
@@ -159,37 +163,11 @@ void updateGL(){
         glVertex3f(0, 0, 1);
         glEnd();
 
-        /*
-           glColor4f(1, 0, 0, 1);
-           QGLViewer::drawArrow(qglviewer::Vec(0,0,0), qglviewer::Vec(3,0,0));
-           glColor4f(0, 1, 0, 1);
-           QGLViewer::drawArrow(qglviewer::Vec(0,0,0), qglviewer::Vec(0,3,0));
-           glColor4f(0, 0, 1, 1);
-           QGLViewer::drawArrow(qglviewer::Vec(0,0,0), qglviewer::Vec(0,0,3));
-           */
-
         glPopMatrix();
     }
 
-
-
-
-
-    glPointSize(2); 
-    glBegin(GL_POINTS);
-    for (int i = 0; i < m_pcld.size(); ++i) {
-        glColor3ub(m_pcldrgb[i][2],m_pcldrgb[i][1],m_pcldrgb[i][0]);
-        //glColor3f(1.0,1.0,1.0);
-        glVertex3f(m_pcld[i].x, m_pcld[i].y,m_pcld[i].z);
-    }
-    glEnd();
-
-
-
     glPopAttrib();
     glPopMatrix();
-
-
 }
 
 
