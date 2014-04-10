@@ -78,9 +78,9 @@ class CFld
     /**
      * Adds and processes a new frame.
      *
-     * @param[in] frame Image of the new frame.
+     * @param[in] frames Images of the new frame.
      */
-    void addFrame(Mat frame);
+    void addFrame(vector<Mat> &frames);
 
     /**
      * Returns the matrix in the scale of 0-255 of the probability of a pair of images beeing of the same place
@@ -111,7 +111,7 @@ class CFld
     Mat trainData;
     Mat vocab;
 
-    vector<Mat> past_images;
+    vector<vector<Mat> > past_images;
 
 
     vector<vector<of2::IMatch> > matches;

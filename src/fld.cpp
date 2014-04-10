@@ -49,13 +49,19 @@ int CFld::iniFabMap(){
 }
 
 
-void CFld::addFrame(Mat frame){
+void CFld::addFrame(vector<Mat> &frames){
 
-    past_images.push_back(frame);
+    past_images.push_back(frames);
 
     Mat fData;
 
-    genData(detector,bide,frame,fData);
+    vector<Mat>::iterator l;
+
+    for(l = frames.begin(); l != frames.end(); l++) {
+
+        genData(detector,bide,*l,fData);
+
+    }
 
     vector<of2::IMatch> imatches;
     fabmap->compare(fData, imatches, true);
@@ -349,7 +355,10 @@ void CFld::rotate_image(cv::Mat &src, cv::Mat &dst, int angle)
 }
 
 
+
 void CFld::geometricCheckMatch(vector<of2::IMatch> & v  ){
+
+    /* TODO implementar per vector d'imatges. Potser es impossible
     auto remover = remove_if(v.begin(), v.end(), [&](const of2::IMatch & o ) { 
             if(o.match > consider_match){
             //cout << o.queryIdx << " - " << o.imgIdx << endl;
@@ -367,6 +376,8 @@ void CFld::geometricCheckMatch(vector<of2::IMatch> & v  ){
 
 
     v.erase( remover, v.end());
+
+    */
 
 }
 
@@ -549,9 +560,9 @@ float CFld::compareHistogram(Mat &img1, Mat &img2){
     normalize( hist_base, hist_base, 0, 1, NORM_MINMAX, -1, Mat() );
 
     /*
-    calcHist( &hsv_half_down, 1, channels, Mat(), hist_half_down, 2, histSize, ranges, true, false );
-    normalize( hist_half_down, hist_half_down, 0, 1, NORM_MINMAX, -1, Mat() );
-    */
+       calcHist( &hsv_half_down, 1, channels, Mat(), hist_half_down, 2, histSize, ranges, true, false );
+       normalize( hist_half_down, hist_half_down, 0, 1, NORM_MINMAX, -1, Mat() );
+       */
 
     calcHist( &hsv_test1, 1, channels, Mat(), hist_test1, 2, histSize, ranges, true, false );
     normalize( hist_test1, hist_test1, 0, 1, NORM_MINMAX, -1, Mat() );
@@ -633,12 +644,12 @@ void CFld::FindCameraMatrices(const Mat& K,
         )
 {
     //KEypoints to point array
-/*
-    vector<Point2f> imgpts1, imgpts2;
+    /*
+       vector<Point2f> imgpts1, imgpts2;
 
-    KeyPointsToPoints(kpts1, imgpts1);
-    KeyPointsToPoints(kpts2, imgpts2);
-*/
+       KeyPointsToPoints(kpts1, imgpts1);
+       KeyPointsToPoints(kpts2, imgpts2);
+       */
 
     vector<Point2f> imgpts1,imgpts2;
     for( unsigned int i = 0; i < p_matches.size(); i++ )
@@ -671,23 +682,23 @@ void CFld::FindCameraMatrices(const Mat& K,
     //FILTER KEYPOINTS
     //TODO IMPLEMENT THIS
     /*
-    for (unsigned int i=0; i<status.size(); i++) {
-        if (status[i])
-        {
-            imgpts1_good.push_back(imgpts1_tmp[i]);
-            imgpts2_good.push_back(imgpts2_tmp[i]);
+       for (unsigned int i=0; i<status.size(); i++) {
+       if (status[i])
+       {
+       imgpts1_good.push_back(imgpts1_tmp[i]);
+       imgpts2_good.push_back(imgpts2_tmp[i]);
 
-            if (matches.size() <= 0) { //points already aligned...
-                new_matches.push_back(DMatch(matches[i].queryIdx,matches[i].trainIdx,matches[i].distance));
-            } else {
-                new_matches.push_back(matches[i]);
-            }
+       if (matches.size() <= 0) { //points already aligned...
+       new_matches.push_back(DMatch(matches[i].queryIdx,matches[i].trainIdx,matches[i].distance));
+       } else {
+       new_matches.push_back(matches[i]);
+       }
 
-        }
-    }	
+       }
+       }	
 
-    cout << matches.size() << " matches before, " << new_matches.size() << " new matches after Fundamental Matrix\n";
-*/
+       cout << matches.size() << " matches before, " << new_matches.size() << " new matches after Fundamental Matrix\n";
+       */
 
 
     /*

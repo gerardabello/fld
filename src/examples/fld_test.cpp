@@ -182,7 +182,8 @@ int main(int argc, char *argv[])
 
     //testPose(test);
     //testStrech(test);
-    testSfM();
+    //testSfM();
+    testFabmap(test);
 
 
 
