@@ -36,7 +36,9 @@ void CFld::addTrainData(Mat td){
     treeBuilder.add(trainData);
     tree = treeBuilder.make();
 
+    cout << "Added train data" << endl;
     iniFabMap();
+    cout << "Initialized FabMap" << endl;
 }
 
 
@@ -66,7 +68,8 @@ void CFld::addFrame(vector<Mat> &frames){
     vector<of2::IMatch> imatches;
     fabmap->compare(fData, imatches, true);
 
-    geometricCheckMatch(imatches);
+
+    //geometricCheckMatch(imatches);
 
     matches.push_back(imatches);
 
@@ -109,9 +112,9 @@ Mat CFld::getMatrix(){
   }
   */
 
-Mat CFld::addTrainVideo(VideoCapture& vc){
+Mat CFld::addTrainVideo(vector<VideoCapture> &vcv){
     Mat td;
-    CFld::genDataVideo(detector,bide,vc,td,20);
+    CFld::genDataVideo(detector,bide,vcv,td, 20);
     addTrainData(td);
     return td;
 }
@@ -145,53 +148,80 @@ bool CFld::genData(const Ptr<FeatureDetector> &detector, BOWImgDescriptorExtract
     return true;
 }
 
+bool CFld::genDataVideo(const Ptr<FeatureDetector> &detector, BOWImgDescriptorExtractor *bide, vector<VideoCapture> &vcv, Mat &data, int steps){
 
-bool CFld::genDataVideo(const Ptr<FeatureDetector> &detector, BOWImgDescriptorExtractor *bide, VideoCapture &cap, Mat &data, int steps){
     if ( !data.empty() )  // if not success, exit program
     {
         cout << "data is not empty" << endl;
         return false;
     }
 
-    if ( !cap.isOpened() )  // if not success, exit program
-    {
-        cout << "Cannot open the video file" << endl;
-        return false;
-    }
+
+
+
+
+
+
 
     int i = 0;
 
     Mat vframe;
+
 
     while(1)
     {
         i++;
 
 
-        bool bSuccess = cap.read(vframe); // read a new frame from video
 
-        if (!bSuccess) //if not success, break loop
-        {
-            cout << "Cannot read the frame from video file" << endl;
-            break;
-        }
 
-        if(i%steps==0){
 
-            /*imshow("MyVideo", vframe); //show the frame in "MyVideo" window
+        vector<VideoCapture>::iterator l;
+        for(l = vcv.begin(); l != vcv.end(); l++) {
+            bool bSuccess = l->read(vframe);
+            if (!bSuccess) //if not success, break loop
+            {
+                cout << "TD: Cannot read the frame from video file" << endl;
+                return true;
+            }
 
-              if(waitKey(30) == 27) //wait for 'esc' key press for 30 ms. If 'esc' key is pressed, break loop
-              {
-              cout << "esc key is pressed by user" << endl;
-              break; 
-              }
 
-*/
-            genData(detector,bide,vframe,data);
+
+
+            if ( !l->isOpened() )  // if not success, exit program
+            {
+                cout << "TD: Cannot open the video file" << endl;
+                return false;
+            }
+
+
+
+
+
+            if(i%steps==0){
+
+                cout << "TD: Frame: " << i << endl;
+
+                /*imshow("MyVideo", vframe); //show the frame in "MyVideo" window
+
+                  if(waitKey(30) == 27) //wait for 'esc' key press for 30 ms. If 'esc' key is pressed, break loop
+                  {
+                  cout << "esc key is pressed by user" << endl;
+                  break; 
+                  }
+                  */
+
+                //imshow("Train_Data", vframe); //show the frame in "MyVideo" window
+                genData(detector,bide,vframe,data);
+
+            }
+
+
 
         }
 
     }
+
 
     return true;
 
@@ -359,25 +389,25 @@ void CFld::rotate_image(cv::Mat &src, cv::Mat &dst, int angle)
 void CFld::geometricCheckMatch(vector<of2::IMatch> & v  ){
 
     /* TODO implementar per vector d'imatges. Potser es impossible
-    auto remover = remove_if(v.begin(), v.end(), [&](const of2::IMatch & o ) { 
-            if(o.match > consider_match){
-            //cout << o.queryIdx << " - " << o.imgIdx << endl;
-            if(o.imgIdx < 0) {
-            return !geometricCheck( past_images.at(o.queryIdx+iframe), past_images.at(o.queryIdx));
-            } else {
-            return !geometricCheck( past_images.at(o.queryIdx+iframe), past_images.at(o.imgIdx));
-            }
-            }else{
-            return true;
-            }
+       auto remover = remove_if(v.begin(), v.end(), [&](const of2::IMatch & o ) { 
+       if(o.match > consider_match){
+    //cout << o.queryIdx << " - " << o.imgIdx << endl;
+    if(o.imgIdx < 0) {
+    return !geometricCheck( past_images.at(o.queryIdx+iframe), past_images.at(o.queryIdx));
+    } else {
+    return !geometricCheck( past_images.at(o.queryIdx+iframe), past_images.at(o.imgIdx));
+    }
+    }else{
+    return true;
+    }
 
-            });
+    });
 
 
 
     v.erase( remover, v.end());
 
-    */
+*/
 
 }
 

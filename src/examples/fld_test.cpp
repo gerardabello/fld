@@ -166,13 +166,29 @@ void testFabmap(CFld *test){
         test->addVocabulary(vocab);
     }
 
-    vector<VideoCapture> vcv_train;
+    Mat train_data;
 
-    getVideoCaptureVector(trainDir, vcv_train);
+    //bool traindatasaved = openMatFileIfExists(mainDir + string("/train"),train_data); 
+    bool traindatasaved = false;
+    if(!traindatasaved){
+        cout << "Generating train data" << endl;
+        vector<VideoCapture> vcv_train;
 
-    //VideoCapture cap_train(dataDir + string("stlucia_train.avi")); // open the video file for reading
+        getVideoCaptureVector(trainDir, vcv_train);
 
-    test->addTrainVideo(vcv_train);
+        //VideoCapture cap_train(dataDir + string("stlucia_train.avi")); // open the video file for reading
+
+        train_data = test->addTrainVideo(vcv_train);
+
+
+        saveMatFile(mainDir + string("/train"), train_data);
+    }else{
+
+        cout << "Train loaded from file" << endl;
+        test->addTrainData(train_data);
+    }
+
+
 
 
     //VideoCapture cap(dataDir + string("stlucia_test.avi")); // open the video file for reading
@@ -183,8 +199,10 @@ void testFabmap(CFld *test){
     getVideoCaptureVector(dataDir, vcv);
 
 
+
+    cout << "Initilizing FabMap stream" << endl;
     int i = 0;
-    int steps = 10;
+    int steps = 20;
     while(1)
     {
         i++;
@@ -201,26 +219,38 @@ void testFabmap(CFld *test){
 
         if(i%steps==0){
 
-            imshow("MyVideo", vframe); //show the frame in "MyVideo" window
+            /*
+               imshow("MyVideo", vframe.at(1)); //show the frame in "MyVideo" window
 
-            if(waitKey(30) == 27) //wait for 'esc' key press for 30 ms. If 'esc' key is pressed, break loop
-            {
-                cout << "esc key is pressed by user" << endl;
-                break; 
-            }
+               if(waitKey(30) == 27) //wait for 'esc' key press for 30 ms. If 'esc' key is pressed, break loop
+               {
+               cout << "esc key is pressed by user" << endl;
+               break; 
+               }
+               */
 
+            cout << "FabMap: Adding Frame " << i << endl;
             test->addFrame(vframe);
-            Mat result;
-            result = test->getMatrix();
 
-            imshow("Confusion Matrix", result);
+
+
+            /*
+               imshow("Confusion Matrix", result);
+               */
         }
 
     }
 
 
+    cout << "FabMap: getting results " << i << endl;
+    Mat result;
+    result = test->getMatrix();
 
+    cout << "FabMap: saving results " << i << endl;
+    saveMatFile(mainDir + string("/result"), result);
 
+    cout << "FabMap: printing results " << i << endl;
+    imshow("Confusion Matrix", result);
 
     waitKey();
 

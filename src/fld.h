@@ -39,7 +39,7 @@ class CFld
      * @return The procesed data from the video. Useful for saving it and pass
      * it as the argument in addTrainData so you dont have to process it again.
      */
-    Mat addTrainVideo(VideoCapture& vc);
+    Mat addTrainVideo(vector<VideoCapture> &vcv);
 
     /**
      * Adds the already procesed training data to the fabmap algprithm.
@@ -122,7 +122,7 @@ class CFld
     int iniFabMap();
 
     bool genData(const Ptr<FeatureDetector> &detector, BOWImgDescriptorExtractor *bide, const Mat &frame, Mat &data);
-    bool genDataVideo(const Ptr<FeatureDetector> &detector, BOWImgDescriptorExtractor *bide, VideoCapture &cap, Mat &data, int steps);
+    bool genDataVideo(const Ptr<FeatureDetector> &detector, BOWImgDescriptorExtractor *bide, vector<VideoCapture> &vcv, Mat &data, int steps);
 
     bool genVocabData(const Ptr<FeatureDetector> &detector, const Ptr<DescriptorExtractor> &extractor, VideoCapture &cap, Mat &data, int steps);
     Mat genVocab(const Ptr<FeatureDetector> &detector, const Ptr<DescriptorExtractor> &extractor, VideoCapture &cap, int steps, float radius);
