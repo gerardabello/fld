@@ -97,31 +97,91 @@ void testStrech(CFld *test){
     waitKey(500);
 }
 
+
+bool readOmniFrame(vector<VideoCapture> vcv, vector<Mat>& iv){
+
+    vector<VideoCapture>::iterator l;
+    for(l = vcv.begin(); l != vcv.end(); l++) {
+        Mat m;
+        bool bSuccess = l->read(m);
+        if(!bSuccess){
+            return false;
+        }
+
+        iv.push_back(m);
+    }
+
+    return true;
+}
+
+
+bool getVideoCaptureVector(string path, vector<VideoCapture>& vcv){
+
+
+    VideoCapture cap1(path + string("/fc/frame%4d.jpg")); // open the video file for reading
+    VideoCapture cap2(path + string("/fr/frame%4d.jpg")); // open the video file for reading
+    VideoCapture cap3(path + string("/rr/frame%4d.jpg")); // open the video file for reading
+    VideoCapture cap4(path + string("/rl/frame%4d.jpg")); // open the video file for reading
+    VideoCapture cap5(path + string("/rl/frame%4d.jpg")); // open the video file for reading
+
+
+    vcv.push_back(cap1);
+    vcv.push_back(cap2);
+    vcv.push_back(cap3);
+    vcv.push_back(cap4);
+    vcv.push_back(cap5);
+
+}
+
+
+
 void testFabmap(CFld *test){
-    string dataDir = "../dat/fabmap/";
+    string dataDir = "../dat/frames/data";
+    string trainDir = "../dat/frames/train";
+    string mainDir = "../dat/frames";
 
 
     Mat vocab;
-    bool vocabdatasaved = openMatFileIfExists(dataDir + string("vocab"),vocab); 
+    Mat vocab1, vocab2;
+    bool vocabdatasaved = openMatFileIfExists(mainDir + string("/vocab"),vocab); 
     if(!vocabdatasaved){
         cout << "Generating vocab" << endl;
-        VideoCapture cap_train_voca(dataDir + string("stlucia_train.avi")); // open the video file for reading
+        VideoCapture cap_train_voca1(trainDir + string("/fc/frame%4d.jpg")); // open the video file for reading
+        VideoCapture cap_train_voca2(trainDir + string("/rr/frame%4d.jpg")); // open the video file for reading
 
-        vocab = test->addVocabVideo(cap_train_voca);
-        saveMatFile(dataDir + string("vocab"), vocab);
+        vocab1 = test->addVocabVideo(cap_train_voca1);
+        vocab2 = test->addVocabVideo(cap_train_voca2);
+
+        vocab.push_back(vocab1);
+        vocab.push_back(vocab2);
+
+        test->addVocabulary(vocab);
+
+        saveMatFile(mainDir + string("/vocab"), vocab);
+        saveMatFile(mainDir + string("/vocab1"), vocab1);
+        saveMatFile(mainDir + string("/vocab2"), vocab2);
     }else{
 
         cout << "Vocab loaded from file" << endl;
         test->addVocabulary(vocab);
     }
 
+    vector<VideoCapture> vcv_train;
 
-    VideoCapture cap_train(dataDir + string("stlucia_train.avi")); // open the video file for reading
+    getVideoCaptureVector(trainDir, vcv_train);
 
-    test->addTrainVideo(cap_train);
+    //VideoCapture cap_train(dataDir + string("stlucia_train.avi")); // open the video file for reading
+
+    test->addTrainVideo(vcv_train);
 
 
-    VideoCapture cap(dataDir + string("stlucia_test.avi")); // open the video file for reading
+    //VideoCapture cap(dataDir + string("stlucia_test.avi")); // open the video file for reading
+
+
+    vector<VideoCapture> vcv;
+
+    getVideoCaptureVector(dataDir, vcv);
+
 
     int i = 0;
     int steps = 10;
@@ -129,9 +189,9 @@ void testFabmap(CFld *test){
     {
         i++;
 
-        Mat vframe;
+        vector<Mat> vframe;
 
-        bool bSuccess = cap.read(vframe); // read a new frame from video
+        bool bSuccess = readOmniFrame(vcv, vframe); // read a new frame from video
 
         if (!bSuccess) //if not success, break loop
         {
