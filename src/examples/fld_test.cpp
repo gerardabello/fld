@@ -115,6 +115,40 @@ bool readOmniFrame(vector<VideoCapture> vcv, vector<Mat>& iv){
 }
 
 
+Mat combineImages(vector<VideoCapture> vcv){
+
+    vector<Mat> iv;
+    readOmniFrame(vcv, iv);
+
+    int h,w;
+    int i;
+
+    h = iv.at(0).rows;
+    w = iv.at(0).cols;
+
+    Mat combine(h, w*iv.size(), CV_8UC3);
+
+    i = 0;
+    vector<Mat>::iterator l;
+    for(l = iv.begin(); l != iv.end(); l++) {
+
+        Mat roi(combine, Rect(w*i, 0, w, h));
+        l->copyTo(roi);
+        i++;
+    }
+
+    imshow("SideBySide", combine); //show the frame in "MyVideo" window
+
+    if(waitKey(30) == 27) //wait for 'esc' key press for 30 ms. If 'esc' key is pressed, break loop
+    {
+        cout << "esc key is pressed by user" << endl;
+        return combine;
+    }
+
+    return combine;
+}
+
+
 bool getVideoCaptureVector(string path, vector<VideoCapture>& vcv){
 
 
@@ -210,7 +244,11 @@ void testFabmap(CFld *test){
 
         vector<Mat> vframe;
 
-        bool bSuccess = readOmniFrame(vcv, vframe); // read a new frame from video
+        Mat sframe;
+
+        //bool bSuccess = readOmniFrame(vcv, vframe); // read a new frame from video
+        sframe = combineImages(vcv);
+        bool bSuccess = true;
 
         if (!bSuccess) //if not success, break loop
         {
@@ -249,10 +287,10 @@ void testFabmap(CFld *test){
 
     cout << result << endl;
     /*
-    cout << "FabMap: saving results "  << endl;
-    saveMatFile(mainDir + string("/result"), result);
+       cout << "FabMap: saving results "  << endl;
+       saveMatFile(mainDir + string("/result"), result);
 
-    */
+*/
 
     cout << "FabMap: printing results "  << endl;
     imshow("Confusion Matrix", result);
