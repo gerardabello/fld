@@ -168,8 +168,8 @@ void testFabmap(CFld *test){
 
     Mat train_data;
 
-    //bool traindatasaved = openMatFileIfExists(mainDir + string("/train"),train_data); 
-    bool traindatasaved = false;
+    bool traindatasaved = openMatFileIfExists(mainDir + string("/train_data"),train_data); 
+    //bool traindatasaved = false;
     if(!traindatasaved){
         cout << "Generating train data" << endl;
         vector<VideoCapture> vcv_train;
@@ -181,10 +181,11 @@ void testFabmap(CFld *test){
         train_data = test->addTrainVideo(vcv_train);
 
 
-        saveMatFile(mainDir + string("/train"), train_data);
+        saveMatFile(mainDir + string("/train_data"), train_data);
     }else{
 
         cout << "Train loaded from file" << endl;
+        cout << "Adding train data ..." << endl;
         test->addTrainData(train_data);
     }
 
@@ -242,14 +243,18 @@ void testFabmap(CFld *test){
     }
 
 
-    cout << "FabMap: getting results " << i << endl;
+    cout << "FabMap: getting results " << endl;
     Mat result;
     result = test->getMatrix();
 
-    cout << "FabMap: saving results " << i << endl;
+    cout << result << endl;
+    /*
+    cout << "FabMap: saving results "  << endl;
     saveMatFile(mainDir + string("/result"), result);
 
-    cout << "FabMap: printing results " << i << endl;
+    */
+
+    cout << "FabMap: printing results "  << endl;
     imshow("Confusion Matrix", result);
 
     waitKey();

@@ -31,10 +31,13 @@ void CFld::addVocabulary(Mat vocabulary){
 }
 
 void CFld::addTrainData(Mat td){
+
+    cout << "Building ChowLiu Tree..." << endl;
     trainData = td;
     of2::ChowLiuTree treeBuilder;
     treeBuilder.add(trainData);
     tree = treeBuilder.make();
+    cout << "ChowLiu Tree Created" << endl;
 
     cout << "Added train data" << endl;
     iniFabMap();
@@ -53,7 +56,8 @@ int CFld::iniFabMap(){
 
 void CFld::addFrame(vector<Mat> &frames){
 
-    past_images.push_back(frames);
+    //funciona pero ho comento per estalviar memoria
+    //past_images.push_back(frames);
 
     Mat fData;
 
@@ -78,8 +82,11 @@ void CFld::addFrame(vector<Mat> &frames){
 
 
 Mat CFld::getMatrix(){
+
+    cout << "Generating Matrix of Matches..." << endl;
     Mat matrix;
 
+    cout << "Matrix Size: " << matches.size()+1 << endl;
     matrix = Mat::zeros(matches.size()+1, matches.size()+1, CV_8UC1);
 
     int j = 0;
@@ -98,6 +105,7 @@ Mat CFld::getMatrix(){
                 matrix.at<char>(l->queryIdx+j, l->imgIdx) =
                     (char)(l->match*255);
             }
+
         }
     }
 
