@@ -109,6 +109,9 @@ Mat CFld::getMatrix(){
         }
     }
 
+
+    cout << matrix << endl;
+
     return matrix;
 }
 
