@@ -142,7 +142,7 @@ Mat combineImages(vector<VideoCapture> vcv){
 
     imshow("SideBySide", combine); //show the frame in "MyVideo" window
 
-    if(waitKey(30) == 27) //wait for 'esc' key press for 30 ms. If 'esc' key is pressed, break loop
+    if(waitKey() == 27) //wait for 'esc' key press for 30 ms. If 'esc' key is pressed, break loop
     {
         cout << "esc key is pressed by user" << endl;
         return combine;
