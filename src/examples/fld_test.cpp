@@ -117,6 +117,8 @@ bool readOmniFrame(vector<VideoCapture> vcv, vector<Mat>& iv){
 
 Mat combineImages(vector<VideoCapture> vcv){
 
+    int margin = 50;
+
     vector<Mat> iv;
     readOmniFrame(vcv, iv);
 
@@ -133,6 +135,7 @@ Mat combineImages(vector<VideoCapture> vcv){
     for(l = iv.begin(); l != iv.end(); l++) {
 
         Mat roi(combine, Rect(w*i, 0, w, h));
+        
         l->copyTo(roi);
         i++;
     }
@@ -174,7 +177,7 @@ void testFabmap(CFld *test){
     string trainDir = "../dat/frames/train";
     string mainDir = "../dat/frames";
 
-
+/*
     Mat vocab;
     Mat vocab1, vocab2;
     bool vocabdatasaved = openMatFileIfExists(mainDir + string("/vocab"),vocab); 
@@ -224,9 +227,8 @@ void testFabmap(CFld *test){
     }
 
 
+*/
 
-
-    //VideoCapture cap(dataDir + string("stlucia_test.avi")); // open the video file for reading
 
 
     vector<VideoCapture> vcv;
