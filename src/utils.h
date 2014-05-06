@@ -45,3 +45,96 @@ bool DecomposeEtoRandT_2(
 }
 
 
+void cropImgMargins(Mat& src, int margin){
+
+    int w = src.cols;
+    int h = src.rows;
+
+    auto myRoi = cvRect(margin, 0,w-(margin*2),h);
+
+    cv::Mat croppedImage;
+    cv::Mat(src, myRoi).copyTo(croppedImage);
+
+
+    croppedImage.copyTo(src);
+
+}
+
+
+bool readOmniFrame(vector<VideoCapture> vcv, vector<Mat>& iv){
+
+    vector<VideoCapture>::iterator l;
+    for(l = vcv.begin(); l != vcv.end(); l++) {
+        Mat m;
+        bool bSuccess = l->read(m);
+        if(!bSuccess){
+            return false;
+        }
+
+        cropImgMargins(m, 50);
+        iv.push_back(m);
+    }
+
+    return true;
+}
+
+
+
+bool combineImages(vector<VideoCapture> vcv, Mat &result){
+
+
+    vector<Mat> iv;
+    bool a = readOmniFrame(vcv, iv);
+
+    if(!a) return false;
+
+    int h,w;
+    int i;
+
+    h = iv.at(0).rows;
+    w = iv.at(0).cols;
+
+    Mat combine(h, w*iv.size(), CV_8UC3);
+
+    i = 0;
+    vector<Mat>::iterator l;
+    for(l = iv.begin(); l != iv.end(); l++) {
+
+        Mat roi(combine, Rect(w*i, 0, w, h));
+
+        l->copyTo(roi);
+        i++;
+    }
+
+    //imshow("SideBySide", combine); //show the frame in "MyVideo" window
+
+    result = combine.clone();
+
+    if(waitKey(30) == 27) //wait for 'esc' key press for 30 ms. If 'esc' key is pressed, break loop
+    {
+        cout << "esc key is pressed by user" << endl;
+        return false;
+    }
+
+
+    return true;
+}
+
+
+void getVideoCaptureVector(string path, vector<VideoCapture>& vcv){
+
+
+    VideoCapture cap1(path + string("/fc/frame%4d.jpg")); // open the video file for reading
+    VideoCapture cap2(path + string("/fr/frame%4d.jpg")); // open the video file for reading
+    VideoCapture cap3(path + string("/rr/frame%4d.jpg")); // open the video file for reading
+    VideoCapture cap4(path + string("/rl/frame%4d.jpg")); // open the video file for reading
+    VideoCapture cap5(path + string("/fl/frame%4d.jpg")); // open the video file for reading
+
+
+    vcv.push_back(cap1);
+    vcv.push_back(cap2);
+    vcv.push_back(cap3);
+    vcv.push_back(cap4);
+    vcv.push_back(cap5);
+
+}

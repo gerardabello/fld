@@ -39,7 +39,7 @@ class CFld
      * @return The procesed data from the video. Useful for saving it and pass
      * it as the argument in addTrainData so you dont have to process it again.
      */
-    Mat addTrainVideo(vector<VideoCapture> &vcv);
+    Mat addTrainVideo(VideoCapture& vc);
 
     /**
      * Adds the already procesed training data to the fabmap algprithm.
@@ -78,9 +78,12 @@ class CFld
     /**
      * Adds and processes a new frame.
      *
-     * @param[in] frames Images of the new frame.
+     * @param[in] frame Image of the new frame.
      */
-    void addFrame(vector<Mat> &frames);
+    void addFrame(Mat frame);
+
+
+    Mat genFrameData(Mat frame);
 
     /**
      * Returns the matrix in the scale of 0-255 of the probability of a pair of images beeing of the same place
@@ -98,6 +101,9 @@ class CFld
     float consider_match;
     float maxSigma;
 
+    //Margin in frames thats the minimum to consider to matches to be from diferent places.
+    static const int same_place_margin = 30;
+
 
     Ptr<FeatureDetector> detector;
     Ptr<DescriptorExtractor> extractor;
@@ -111,7 +117,7 @@ class CFld
     Mat trainData;
     Mat vocab;
 
-    vector<vector<Mat> > past_images;
+    vector<Mat> past_images;
 
 
     vector<vector<of2::IMatch> > matches;
@@ -122,13 +128,13 @@ class CFld
     int iniFabMap();
 
     bool genData(const Ptr<FeatureDetector> &detector, BOWImgDescriptorExtractor *bide, const Mat &frame, Mat &data);
-    bool genDataVideo(const Ptr<FeatureDetector> &detector, BOWImgDescriptorExtractor *bide, vector<VideoCapture> &vcv, Mat &data, int steps);
+    bool genDataVideo(const Ptr<FeatureDetector> &detector, BOWImgDescriptorExtractor *bide, VideoCapture &cap, Mat &data, int steps);
 
     bool genVocabData(const Ptr<FeatureDetector> &detector, const Ptr<DescriptorExtractor> &extractor, VideoCapture &cap, Mat &data, int steps);
     Mat genVocab(const Ptr<FeatureDetector> &detector, const Ptr<DescriptorExtractor> &extractor, VideoCapture &cap, int steps, float radius);
 
 
-    void geometricCheckMatch(vector<of2::IMatch> & v);
+    void checkMatch(vector<of2::IMatch> & v);
 
     vector<Mat>* rotate_vector(vector<Mat> &imgs, int angle);
 

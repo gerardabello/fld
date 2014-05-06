@@ -31,17 +31,12 @@ void CFld::addVocabulary(Mat vocabulary){
 }
 
 void CFld::addTrainData(Mat td){
-
-    cout << "Building ChowLiu Tree..." << endl;
     trainData = td;
     of2::ChowLiuTree treeBuilder;
     treeBuilder.add(trainData);
     tree = treeBuilder.make();
-    cout << "ChowLiu Tree Created" << endl;
 
-    cout << "Added train data" << endl;
     iniFabMap();
-    cout << "Initialized FabMap" << endl;
 }
 
 
@@ -54,39 +49,36 @@ int CFld::iniFabMap(){
 }
 
 
-void CFld::addFrame(vector<Mat> &frames){
+void CFld::addFrame(Mat frame){
 
-    //funciona pero ho comento per estalviar memoria
-    //past_images.push_back(frames);
+    past_images.push_back(frame);
 
     Mat fData;
 
-    vector<Mat>::iterator l;
-
-    for(l = frames.begin(); l != frames.end(); l++) {
-
-        genData(detector,bide,*l,fData);
-
-    }
+    genData(detector,bide,frame,fData);
 
     vector<of2::IMatch> imatches;
     fabmap->compare(fData, imatches, true);
 
-
-    //geometricCheckMatch(imatches);
+    checkMatch(imatches);
 
     matches.push_back(imatches);
 
     iframe++;
 }
 
+Mat CFld::genFrameData(Mat frame){
+
+    Mat fData;
+
+    genData(detector,bide,frame,fData);
+
+    return fData;
+}
 
 Mat CFld::getMatrix(){
-
-    cout << "Generating Matrix of Matches..." << endl;
     Mat matrix;
 
-    cout << "Matrix Size: " << matches.size()+1 << endl;
     matrix = Mat::zeros(matches.size()+1, matches.size()+1, CV_8UC1);
 
     int j = 0;
@@ -105,12 +97,8 @@ Mat CFld::getMatrix(){
                 matrix.at<char>(l->queryIdx+j, l->imgIdx) =
                     (char)(l->match*255);
             }
-
         }
     }
-
-
-    cout << matrix << endl;
 
     return matrix;
 }
@@ -123,9 +111,9 @@ Mat CFld::getMatrix(){
   }
   */
 
-Mat CFld::addTrainVideo(vector<VideoCapture> &vcv){
+Mat CFld::addTrainVideo(VideoCapture& vc){
     Mat td;
-    CFld::genDataVideo(detector,bide,vcv,td, 20);
+    CFld::genDataVideo(detector,bide,vc,td,20);
     addTrainData(td);
     return td;
 }
@@ -159,84 +147,58 @@ bool CFld::genData(const Ptr<FeatureDetector> &detector, BOWImgDescriptorExtract
     return true;
 }
 
-bool CFld::genDataVideo(const Ptr<FeatureDetector> &detector, BOWImgDescriptorExtractor *bide, vector<VideoCapture> &vcv, Mat &data, int steps){
 
+bool CFld::genDataVideo(const Ptr<FeatureDetector> &detector, BOWImgDescriptorExtractor *bide, VideoCapture &cap, Mat &data, int steps){
     if ( !data.empty() )  // if not success, exit program
     {
         cout << "data is not empty" << endl;
         return false;
     }
 
-
-
-
-
-
-
+    if ( !cap.isOpened() )  // if not success, exit program
+    {
+        cout << "Cannot open the video file" << endl;
+        return false;
+    }
 
     int i = 0;
 
     Mat vframe;
-
 
     while(1)
     {
         i++;
 
 
+        bool bSuccess = cap.read(vframe); // read a new frame from video
 
+        if (!bSuccess) //if not success, break loop
+        {
+            cout << "Cannot read the frame from video file" << endl;
+            break;
+        }
 
+        if(i%steps==0){
 
-        vector<VideoCapture>::iterator l;
-        for(l = vcv.begin(); l != vcv.end(); l++) {
-            bool bSuccess = l->read(vframe);
-            if (!bSuccess) //if not success, break loop
-            {
-                cout << "TD: Cannot read the frame from video file" << endl;
-                return true;
-            }
+            /*imshow("MyVideo", vframe); //show the frame in "MyVideo" window
 
+              if(waitKey(30) == 27) //wait for 'esc' key press for 30 ms. If 'esc' key is pressed, break loop
+              {
+              cout << "esc key is pressed by user" << endl;
+              break; 
+              }
 
-
-
-            if ( !l->isOpened() )  // if not success, exit program
-            {
-                cout << "TD: Cannot open the video file" << endl;
-                return false;
-            }
-
-
-
-
-
-            if(i%steps==0){
-
-                cout << "TD: Frame: " << i << endl;
-
-                /*imshow("MyVideo", vframe); //show the frame in "MyVideo" window
-
-                  if(waitKey(30) == 27) //wait for 'esc' key press for 30 ms. If 'esc' key is pressed, break loop
-                  {
-                  cout << "esc key is pressed by user" << endl;
-                  break; 
-                  }
-                  */
-
-                //imshow("Train_Data", vframe); //show the frame in "MyVideo" window
-                genData(detector,bide,vframe,data);
-
-            }
-
-
+*/
+            genData(detector,bide,vframe,data);
 
         }
 
     }
 
-
     return true;
 
 }
+
 
 
 bool CFld::genVocabData(const Ptr<FeatureDetector> &detector, const Ptr<DescriptorExtractor> &extractor, VideoCapture &cap, Mat &data, int steps){
@@ -397,28 +359,35 @@ void CFld::rotate_image(cv::Mat &src, cv::Mat &dst, int angle)
 
 
 
-void CFld::geometricCheckMatch(vector<of2::IMatch> & v  ){
+void CFld::checkMatch(vector<of2::IMatch> & v  ){
+    int i1,i2;
+    bool ok;
 
-    /* TODO implementar per vector d'imatges. Potser es impossible
-       auto remover = remove_if(v.begin(), v.end(), [&](const of2::IMatch & o ) { 
-       if(o.match > consider_match){
-    //cout << o.queryIdx << " - " << o.imgIdx << endl;
-    if(o.imgIdx < 0) {
-    return !geometricCheck( past_images.at(o.queryIdx+iframe), past_images.at(o.queryIdx));
-    } else {
-    return !geometricCheck( past_images.at(o.queryIdx+iframe), past_images.at(o.imgIdx));
-    }
-    }else{
-    return true;
-    }
+
+    auto remover = remove_if(v.begin(), v.end(), [&](const of2::IMatch & o ) { 
+            if(o.match > consider_match){
+            //cout << o.queryIdx << " - " << o.imgIdx << endl;
+                if(o.imgIdx < 0) {
+                    i1 = o.queryIdx+iframe;
+                    i2 = o.queryIdx;
+                } else {
+                    i1 = o.queryIdx+iframe;
+                    i2 = o.imgIdx;
+                }
+            }else{
+                return true;
+            }
+
+
+            if (abs(i1-i2)< same_place_margin) return true;
+            if (!geometricCheck( past_images.at(i1), past_images.at(i2))) return true;
 
     });
 
 
 
-    v.erase( remover, v.end());
 
-*/
+    v.erase( remover, v.end());
 
 }
 
@@ -446,6 +415,7 @@ bool CFld::geometricCheck( Mat &img1, Mat &img2){
 
     percentilInlinersKpts(keypoints1, keypoints2, c_matches);
     compareHistogram(img1, img2);
+
 
 
     vector<float> angles;
@@ -648,10 +618,10 @@ void CFld::calcPose(const Mat &K, const Mat &img1, const Mat &img2, Mat &Pout){
     vector<DMatch> p_matches;
     p_matcher->match(descriptors1, descriptors2, p_matches);
 
-    namedWindow("matches", 1);
+    //namedWindow("matches", 1);
     Mat img_matches;
     drawMatches(img1, keypoints1, img2, keypoints2, p_matches, img_matches);
-    imshow("matches", img_matches);
+    //imshow("matches", img_matches);
     waitKey(0);
 
 

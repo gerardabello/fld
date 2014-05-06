@@ -98,77 +98,6 @@ void testStrech(CFld *test){
 }
 
 
-bool readOmniFrame(vector<VideoCapture> vcv, vector<Mat>& iv){
-
-    vector<VideoCapture>::iterator l;
-    for(l = vcv.begin(); l != vcv.end(); l++) {
-        Mat m;
-        bool bSuccess = l->read(m);
-        if(!bSuccess){
-            return false;
-        }
-
-        iv.push_back(m);
-    }
-
-    return true;
-}
-
-
-Mat combineImages(vector<VideoCapture> vcv){
-
-    int margin = 50;
-
-    vector<Mat> iv;
-    readOmniFrame(vcv, iv);
-
-    int h,w;
-    int i;
-
-    h = iv.at(0).rows;
-    w = iv.at(0).cols;
-
-    Mat combine(h, w*iv.size(), CV_8UC3);
-
-    i = 0;
-    vector<Mat>::iterator l;
-    for(l = iv.begin(); l != iv.end(); l++) {
-
-        Mat roi(combine, Rect(w*i, 0, w, h));
-        
-        l->copyTo(roi);
-        i++;
-    }
-
-    imshow("SideBySide", combine); //show the frame in "MyVideo" window
-
-    if(waitKey() == 27) //wait for 'esc' key press for 30 ms. If 'esc' key is pressed, break loop
-    {
-        cout << "esc key is pressed by user" << endl;
-        return combine;
-    }
-
-    return combine;
-}
-
-
-bool getVideoCaptureVector(string path, vector<VideoCapture>& vcv){
-
-
-    VideoCapture cap1(path + string("/fc/frame%4d.jpg")); // open the video file for reading
-    VideoCapture cap2(path + string("/fr/frame%4d.jpg")); // open the video file for reading
-    VideoCapture cap3(path + string("/rr/frame%4d.jpg")); // open the video file for reading
-    VideoCapture cap4(path + string("/rl/frame%4d.jpg")); // open the video file for reading
-    VideoCapture cap5(path + string("/rl/frame%4d.jpg")); // open the video file for reading
-
-
-    vcv.push_back(cap1);
-    vcv.push_back(cap2);
-    vcv.push_back(cap3);
-    vcv.push_back(cap4);
-    vcv.push_back(cap5);
-
-}
 
 
 
@@ -177,7 +106,6 @@ void testFabmap(CFld *test){
     string trainDir = "../dat/frames/train";
     string mainDir = "../dat/frames";
 
-/*
     Mat vocab;
     Mat vocab1, vocab2;
     bool vocabdatasaved = openMatFileIfExists(mainDir + string("/vocab"),vocab); 
@@ -215,7 +143,52 @@ void testFabmap(CFld *test){
 
         //VideoCapture cap_train(dataDir + string("stlucia_train.avi")); // open the video file for reading
 
-        train_data = test->addTrainVideo(vcv_train);
+        //train_data = test->addTrainVideo(vcv_train);
+        
+        Mat temp_train_data;
+        int i_train = 0;
+        int steps_train = 20;
+        while(1)
+        {
+            i_train++;
+
+
+            //vector<Mat> vframe;
+
+            Mat sframe_train;
+
+            //bool bSuccess = readOmniFrame(vcv, vframe); // read a new frame from video
+            bool bSuccess_train = combineImages(vcv_train, sframe_train);
+
+            if (!bSuccess_train) //if not success, break loop
+            {
+                cout << "Cannot read the frame from video file" << endl;
+                break;
+            }
+
+            cv::resize(sframe_train, sframe_train, Size(), 0.5, 0.5);
+
+
+
+            if(i_train%steps_train==0){
+
+            cout << "Train: generating frame " << i_train << endl;
+                /*
+                   imshow("MyVideo", vframe.at(1)); //show the frame in "MyVideo" window
+
+                   if(waitKey(30) == 27) //wait for 'esc' key press for 30 ms. If 'esc' key is pressed, break loop
+                   {
+                   cout << "esc key is pressed by user" << endl;
+                   break; 
+                   }
+                   */
+
+                temp_train_data = test->genFrameData(sframe_train);
+                train_data.push_back(temp_train_data);
+
+            }
+
+        }
 
 
         saveMatFile(mainDir + string("/train_data"), train_data);
@@ -227,8 +200,6 @@ void testFabmap(CFld *test){
     }
 
 
-*/
-
 
 
     vector<VideoCapture> vcv;
@@ -236,6 +207,7 @@ void testFabmap(CFld *test){
     getVideoCaptureVector(dataDir, vcv);
 
 
+    namedWindow( "Test Data", WINDOW_AUTOSIZE ); // Create a window for display.
 
     cout << "Initilizing FabMap stream" << endl;
     int i = 0;
@@ -244,13 +216,12 @@ void testFabmap(CFld *test){
     {
         i++;
 
-        vector<Mat> vframe;
+        //vector<Mat> vframe;
 
         Mat sframe;
 
         //bool bSuccess = readOmniFrame(vcv, vframe); // read a new frame from video
-        sframe = combineImages(vcv);
-        bool bSuccess = true;
+        bool bSuccess = combineImages(vcv, sframe);
 
         if (!bSuccess) //if not success, break loop
         {
@@ -258,44 +229,37 @@ void testFabmap(CFld *test){
             break;
         }
 
+        cv::resize(sframe, sframe, Size(), 0.5, 0.5);
+
         if(i%steps==0){
 
-            /*
-               imshow("MyVideo", vframe.at(1)); //show the frame in "MyVideo" window
+            imshow("Test Data", sframe); //show the frame in "MyVideo" window
 
-               if(waitKey(30) == 27) //wait for 'esc' key press for 30 ms. If 'esc' key is pressed, break loop
-               {
-               cout << "esc key is pressed by user" << endl;
-               break; 
-               }
-               */
+            if(waitKey(30) == 27) //wait for 'esc' key press for 30 ms. If 'esc' key is pressed, break loop
+            {
+                cout << "esc key is pressed by user" << endl;
+                break; 
+            }
 
             cout << "FabMap: Adding Frame " << i << endl;
-            test->addFrame(vframe);
+            test->addFrame(sframe);
 
+            Mat result;
+            result = test->getMatrix();
 
-
-            /*
-               imshow("Confusion Matrix", result);
-               */
+            imshow("Confusion Matrix", result);
         }
 
     }
 
 
-    cout << "FabMap: getting results " << endl;
-    Mat result;
-    result = test->getMatrix();
 
-    cout << result << endl;
+
     /*
        cout << "FabMap: saving results "  << endl;
        saveMatFile(mainDir + string("/result"), result);
+       */
 
-*/
-
-    cout << "FabMap: printing results "  << endl;
-    imshow("Confusion Matrix", result);
 
     waitKey();
 
