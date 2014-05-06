@@ -417,7 +417,6 @@ bool CFld::geometricCheck( Mat &img1, Mat &img2){
     compareHistogram(img1, img2);
 
 
-
     vector<float> angles;
 
 
@@ -451,7 +450,7 @@ bool CFld::geometricCheck( Mat &img1, Mat &img2){
     cout << "-------" << endl;
 
     // drawing the results
-    namedWindow("matches", 1);
+    //namedWindow("matches", 1);
     Mat img_matches;
     drawMatches(img1, keypoints1, img2, keypoints2, c_matches, img_matches);
     imshow("matches", img_matches);
