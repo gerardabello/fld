@@ -17,3 +17,14 @@ TARGET_LINK_LIBRARIES(fld_test
                         /home/gabello/Code/pfc_gas/lib/SFML/libsfml-window.so
 )
 
+
+ADD_EXECUTABLE(calib calibration.cpp)
+find_package(OpenCV 2.4.8 EXACT REQUIRED )
+#FIND_PACKAGE(MRPT REQUIRED slam;vision;gui;topography)
+# add the necessary include directories
+INCLUDE_DIRECTORIES(.
+                    /usr/local/include/opencv2
+                    #/home/gabello/Code/pfc_gas/src/Eigen
+    )
+
+target_link_libraries(calib ${OpenCV_LIBS} )

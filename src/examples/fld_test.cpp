@@ -6,6 +6,7 @@
 #include "sfm_test.cpp"
 
 
+
 bool openMatFileIfExists(string path, Mat &data){
     std::ifstream file(path.c_str());
     if(file.is_open()) {
@@ -47,10 +48,19 @@ bool saveMatFile(string path, const Mat &data){
 }
 
 
+void testOmniPose(CFld *test){
+
+
+
+
+
+}
+
+
 void testPose(CFld *test){
 
 
-    string imgDir = "../dat/fountain/";
+    string imgDir = "../dat/sfm/";
 
 
     Mat K = (Mat_<double>(3,3) << 919.8266666666666, 0.0, 506.89666666666665, 0.0, 921.8365624999999, 335.7672021484375, 0, 0, 1 );
@@ -58,8 +68,8 @@ void testPose(CFld *test){
 
     Mat img1, img2;
 
-    img1 = imread(imgDir+"0001-small.png" , IMREAD_COLOR);
-    img2 = imread(imgDir+"0005-small.png" , IMREAD_COLOR);
+    img1 = imread(imgDir+"frame0622.jpg" , IMREAD_COLOR);
+    img2 = imread(imgDir+"frame0627.jpg" , IMREAD_COLOR);
 
 
     namedWindow( "Pano", WINDOW_AUTOSIZE ); // Create a window for display.
@@ -72,8 +82,6 @@ void testPose(CFld *test){
     Mat P;
 
     test->calcPose(K, img1, img2, P);
-
-
 }
 
 void testStrech(CFld *test){
@@ -233,7 +241,7 @@ void testFabmap(CFld *test){
 
         if(i%steps==0){
 
-            imshow("Test Data", sframe); //show the frame in "MyVideo" window
+            //imshow("Test Data", sframe); //show the frame in "MyVideo" window
 
             if(waitKey(30) == 27) //wait for 'esc' key press for 30 ms. If 'esc' key is pressed, break loop
             {
@@ -275,16 +283,22 @@ int main(int argc, char *argv[])
 
     cout << endl << "## Fld Test ##" << endl << endl;
 
+
     CFld *test;
 
     test = new CFld();
 
-    //testPose(test);
+    testPose(test);
     //testStrech(test);
     //testSfM();
-    testFabmap(test);
+    //testFabmap(test);
 
+    /*
+    Mat img1 = imread("pano1.jpg" , IMREAD_COLOR);
+    Mat img2 = imread("pano2.jpg" , IMREAD_COLOR);
 
+    test->findOmniPose(img1,img2);
+*/
 
 
     cout << endl << "## End ##" << endl << endl;

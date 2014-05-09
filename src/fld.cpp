@@ -1,4 +1,5 @@
 #include "fld.h"
+#include "pose.cpp"
 
 
 CFld::CFld(){
@@ -380,8 +381,10 @@ void CFld::checkMatch(vector<of2::IMatch> & v  ){
 
 
             if (abs(i1-i2)< same_place_margin) return true;
-            if (!geometricCheck( past_images.at(i1), past_images.at(i2))) return true;
+            //if (!geometricCheck( past_images.at(i1), past_images.at(i2))) return true;
 
+            imwrite( "pano1.jpg", past_images.at(i1) );
+            imwrite( "pano2.jpg", past_images.at(i2) );
     });
 
 
@@ -453,7 +456,7 @@ bool CFld::geometricCheck( Mat &img1, Mat &img2){
     //namedWindow("matches", 1);
     Mat img_matches;
     drawMatches(img1, keypoints1, img2, keypoints2, c_matches, img_matches);
-    imshow("matches", img_matches);
+    //imshow("matches", img_matches);
     waitKey(0);
 
     return stdev <= maxSigma;
