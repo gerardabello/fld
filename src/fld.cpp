@@ -601,10 +601,10 @@ void CFld::calcPose(const Mat &K, const Mat &img1, const Mat &img2, Mat &Pout){
 
 
     //DETECTION ###########################
+    Ptr<FeatureDetector> p_detector = FeatureDetector::create("SIFT");
 
-    Ptr<FeatureDetector> p_detector = FeatureDetector::create("ORB");
-    Ptr<DescriptorExtractor> p_descriptor = DescriptorExtractor::create("BRIEF");
-    Ptr<DescriptorMatcher> p_matcher = DescriptorMatcher::create("BruteForce-Hamming");
+    Ptr<DescriptorExtractor> p_descriptor = DescriptorExtractor::create("SIFT");
+    Ptr<DescriptorMatcher> p_matcher = DescriptorMatcher::create("BruteForce");
 
     // detecting keypoints
     vector<KeyPoint> keypoints1, keypoints2;
@@ -617,17 +617,23 @@ void CFld::calcPose(const Mat &K, const Mat &img1, const Mat &img2, Mat &Pout){
     p_descriptor->compute(img2, keypoints2, descriptors2);
 
     // matching descriptors
-    vector<DMatch> p_matches;
-    p_matcher->match(descriptors1, descriptors2, p_matches);
-
-    //namedWindow("matches", 1);
-    Mat img_matches;
-    drawMatches(img1, keypoints1, img2, keypoints2, p_matches, img_matches);
-    //imshow("matches", img_matches);
-    waitKey(0);
+    std::vector<std::vector<cv::DMatch>> p_matches;
+    p_matcher->knnMatch(descriptors1, descriptors2, p_matches, 2);  // Find two nearest matches
 
 
-    cout << p_matches.size() << endl;
+
+    vector<cv::DMatch> good_matches;
+
+    for (int i = 0; i < p_matches.size(); ++i)
+    {
+        //cout << "comparison : " << p_matches[i][0].distance << " < " << pose_GoodMatchesRatio * p_matches[i][1].distance << endl;
+        if (p_matches[i][0].distance < 0.8 * p_matches[i][1].distance)
+        {
+            good_matches.push_back(p_matches[i][0]);
+        }
+    }
+
+
 
 
     //FI DETECTION ###########################
@@ -638,13 +644,15 @@ void CFld::calcPose(const Mat &K, const Mat &img1, const Mat &img2, Mat &Pout){
     FindCameraMatrices(K,
             keypoints1,
             keypoints2,
-            p_matches,
+            good_matches,
+            img1,
+            img2,
             P,
             P1
             );
 
-    Pout = Mat(P);
 
+    Pout = Mat(P);
 }
 
 
@@ -652,6 +660,8 @@ void CFld::FindCameraMatrices(const Mat& K,
         const vector<KeyPoint>& kpts1,
         const vector<KeyPoint>& kpts2,
         const vector<DMatch> p_matches,
+        const Mat &img1,
+        const Mat &img2,
         Matx34d& P,
         Matx34d& P1
         )
@@ -663,17 +673,21 @@ void CFld::FindCameraMatrices(const Mat& K,
        KeyPointsToPoints(kpts1, imgpts1);
        KeyPointsToPoints(kpts2, imgpts2);
        */
+    Mat img1p, img2p;
+
+    img1.copyTo(img1p);
+    img2.copyTo(img2p);
 
     vector<Point2f> imgpts1,imgpts2;
+
+
+
     for( unsigned int i = 0; i < p_matches.size(); i++ )
     {
         imgpts1.push_back(kpts1[p_matches[i].queryIdx].pt);
         imgpts2.push_back(kpts2[p_matches[i].trainIdx].pt);
     }
 
-
-    cout << imgpts1 << endl;
-    cout << imgpts2 << endl;
 
 
 
@@ -687,9 +701,60 @@ void CFld::FindCameraMatrices(const Mat& K,
     Mat F = findFundamentalMat(imgpts1,imgpts2, FM_RANSAC, 0.006 * maxVal, 0.99, status);
 
 
+    vector<Point2f> imgpts1_g ,imgpts2_g;
+    for (unsigned int i = 0; i < status.size(); i++){
+        if (status.at(i) == 1){
+            imgpts1_g.push_back(imgpts1.at(i));
+            imgpts2_g.push_back(imgpts2.at(i));
+        }
+    }
+
+
+
+
+
+    cout << "number of in: " << imgpts1_g.size() << endl;
+
+
     //Essential matrix: compute then extract cameras [R|t]
     Mat_<double> E = K.t() * F * K; //according to HZ (9.12)
 
+
+
+
+    /* draw the left points corresponding epipolar lines in right image */
+    std::vector<cv::Vec3f> linesLeft;
+    cv::computeCorrespondEpilines(
+            imgpts1_g, // image points
+            1,                      // in image 1 (can also be 2)
+            F,            // F matrix
+            linesLeft);             // vector of epipolar lines
+
+    // for all epipolar lines
+    for (vector<cv::Vec3f>::const_iterator it= linesLeft.begin(); it!=linesLeft.end(); ++it) {
+
+        // draw the epipolar line between first and last column
+        cv::line(img2p,cv::Point(0,-(*it)[2]/(*it)[1]),cv::Point(img2p.cols,-((*it)[2]+(*it)[0]*img2p.cols)/(*it)[1]),cv::Scalar(255,255,255));
+    }
+
+
+
+    // draw the left points corresponding epipolar lines in left image
+    std::vector<cv::Vec3f> linesRight;
+    cv::computeCorrespondEpilines(imgpts2_g,2,F,linesRight);
+    for (vector<cv::Vec3f>::const_iterator it= linesRight.begin(); it!=linesRight.end(); ++it) {
+
+        // draw the epipolar line between first and last column
+        cv::line(img1p,cv::Point(0,-(*it)[2]/(*it)[1]), cv::Point(img1p.cols,-((*it)[2]+(*it)[0]*img1p.cols)/(*it)[1]), cv::Scalar(255,255,255));
+    }
+
+    // Display the images with points and epipolar lines
+    cv::namedWindow("Right Image Epilines");
+    cv::imshow("Right Image Epilines",img1p);
+    cv::namedWindow("Left Image Epilines");
+    cv::imshow("Left Image Epilines",img2p);
+
+    waitKey(20000);
 
 
     //FILTER KEYPOINTS
@@ -741,18 +806,8 @@ void CFld::FindCameraMatrices(const Mat& K,
     Mat_<double> t2(1,3);
 
 
-    if (!CheckCoherentRotation(R1)) {
-        cout<<"resulting rotation is not coherent\n";
-        P1 = 0;
-        return;
-    }
 
 
-    if (!CheckCoherentRotation(R2)) {
-        cout<<"resulting rotation is not coherent\n";
-        P1 = 0;
-        return;
-    }
 
 
 
@@ -764,7 +819,18 @@ void CFld::FindCameraMatrices(const Mat& K,
             return;
         }
 
+        if (!CheckCoherentRotation(R1)) {
+            cout<<"resulting rotation is not coherent\n";
+            P1 = 0;
+            return;
+        }
 
+
+        if (!CheckCoherentRotation(R2)) {
+            cout<<"resulting rotation is not coherent\n";
+            P1 = 0;
+            return;
+        }
 
         P = Matx34d(R1(0,0),R1(0,1),R1(0,2),t1(0),
                 R1(1,0),R1(1,1),R1(1,2),t1(1),

@@ -49,11 +49,45 @@ bool saveMatFile(string path, const Mat &data){
 
 
 void testOmniPose(CFld *test){
+/*
+    string dataDir = "../dat/frames/data";
+    vector<VideoCapture> vcv;
+
+    getVideoCaptureVector(dataDir, vcv);
+
+    Mat frameM1, frameM2;
+
+    int frame1 = 786;
+    int frame2 = 800;
+
+
+    Mat sframe;
+
+    while(1)
+    {	
+
+        //bool bSuccess = readOmniFrame(vcv, vframe); // read a new frame from video
+        bool bSuccess = combineImages(vcv, sframe);
+
+        if (!bSuccess) //if not success, break loop
+        {
+            cout << "Cannot read the frame from video file" << endl;
+            break;
+        }
+        
+        if(i==frame1 || i==frame2){
+
+            cv::resize(sframe, sframe, Size(), 0.5, 0.5);
+
+            sframe.copyTo(
 
 
 
+        }
 
 
+    }
+*/
 }
 
 
@@ -68,8 +102,8 @@ void testPose(CFld *test){
 
     Mat img1, img2;
 
-    img1 = imread(imgDir+"frame0622.jpg" , IMREAD_COLOR);
-    img2 = imread(imgDir+"frame0627.jpg" , IMREAD_COLOR);
+    img1 = imread(imgDir+"frame0627.jpg" , IMREAD_COLOR);
+    img2 = imread(imgDir+"frame0657.jpg" , IMREAD_COLOR);
 
 
     namedWindow( "Pano", WINDOW_AUTOSIZE ); // Create a window for display.
@@ -152,7 +186,7 @@ void testFabmap(CFld *test){
         //VideoCapture cap_train(dataDir + string("stlucia_train.avi")); // open the video file for reading
 
         //train_data = test->addTrainVideo(vcv_train);
-        
+
         Mat temp_train_data;
         int i_train = 0;
         int steps_train = 20;
@@ -180,7 +214,7 @@ void testFabmap(CFld *test){
 
             if(i_train%steps_train==0){
 
-            cout << "Train: generating frame " << i_train << endl;
+                cout << "Train: generating frame " << i_train << endl;
                 /*
                    imshow("MyVideo", vframe.at(1)); //show the frame in "MyVideo" window
 
@@ -288,17 +322,21 @@ int main(int argc, char *argv[])
 
     test = new CFld();
 
-    testPose(test);
+    //testPose(test);
     //testStrech(test);
     //testSfM();
     //testFabmap(test);
 
-    /*
+
     Mat img1 = imread("pano1.jpg" , IMREAD_COLOR);
     Mat img2 = imread("pano2.jpg" , IMREAD_COLOR);
 
+
+    cv::resize(img1, img1, Size(), 0.3, 0.3);
+    cv::resize(img2, img2, Size(), 0.3, 0.3);
+
     test->findOmniPose(img1,img2);
-*/
+
 
 
     cout << endl << "## End ##" << endl << endl;

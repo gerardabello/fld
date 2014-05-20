@@ -33,7 +33,7 @@ class CFld
     const static int pose_PairMaxAngle = 150;
 
     //Ratio between the best match and the second best match to consider it a good match
-    constexpr static float pose_GoodMatchesRatio = 0.6;
+    constexpr static float pose_GoodMatchesRatio = 0.5;
 
 
     public:
@@ -190,6 +190,8 @@ class CFld
                 const vector<KeyPoint>& kpts1,
                 const vector<KeyPoint>& kpts2,
                 const vector<DMatch> p_matches,
+                const Mat &img1,
+                const Mat &img2,
                 Matx34d& P,
                 Matx34d& P1
                 );

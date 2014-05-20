@@ -96,12 +96,12 @@ void CFld::findOmniPose(Mat& img1, Mat& img2){
 
     for (int i = 0; i < ptsPair.size(); ++i)
     {
-        pa_1 = ptsPair.at(i).first;
+        pa_1 = ptsPair.at(i).first ;
         pa_2 = ptsPair.at(i).second;
 
-        /*cout << " -- new point -- " << endl;
-        cout << "point a: " << "from 1: " << pa_1 << " - from 2: " << pa_2 << endl;
-        */
+        cout << " -- new point -- " << endl;
+        cout << "point a: " << "from 1: " << pa_1.x/imw*360 << " - from 2: " << pa_2.x/imw*360 << endl;
+        
 
         for (int j = 0; j < ptsPair.size(); ++j)
             //for (int j = (i>=lookBack? i-lookBack : 0); j < ptsPair.size()-i; ++j)
@@ -114,7 +114,7 @@ void CFld::findOmniPose(Mat& img1, Mat& img2){
             pb_1 = ptsPair.at(j).first;
             pb_2 = ptsPair.at(j).second;
 
-            //cout << "    point b: " << "from 1: " << pb_1 << " - from 2: " << pb_2 << endl;
+            cout << "    point b: " << "from 1: " << pb_1.x/imw*360 << " - from 2: " << pb_2.x/imw*360 << endl;
 
             a1 = abs( pa_1.x - pb_1.x );
             a2 = abs( pa_2.x - pb_2.x );
@@ -128,6 +128,7 @@ void CFld::findOmniPose(Mat& img1, Mat& img2){
 
             dif = abs(a1-a2);
 
+            cout << "    a1: " << a1 << ", a2: " << a2 << ", dif: " << dif <<  endl;
 
             angleDifs.push_back( 
                     pair < pair <float,float> , float > (
@@ -194,7 +195,7 @@ void CFld::findOmniPose(Mat& img1, Mat& img2){
 
 
     Mat img_matches;
-    drawMatches(img1, keypoints1, img2, keypoints2, good_matches, img_matches);
+    drawMatches(img1, keypoints1, img2, keypoints2, good_matches, img_matches,Scalar::all(-1), Scalar::all(-1), vector<char>(), 2);
 
     //cv::resize(img_matches, img_matches, Size(), 0.5, 0.5);
 
