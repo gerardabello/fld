@@ -309,8 +309,22 @@ void testFabmap(CFld *test){
 }
 
 
+void testMyPose(CFld *test){
+
+    string trainDir = "../dat/frames/train";
+
+    Mat img1, img2;
+
+    getOnePano(trainDir, "0687", img1);
+    getOnePano(trainDir, "0700", img2);
 
 
+    cv::resize(img1, img1, Size(), 0.6, 0.6);
+    cv::resize(img2, img2, Size(), 0.6, 0.6);
+
+    test->findOmniPose(img1,img2);
+
+}
 
 int main(int argc, char *argv[])
 {
@@ -326,16 +340,10 @@ int main(int argc, char *argv[])
     //testStrech(test);
     //testSfM();
     //testFabmap(test);
+    testMyPose(test);
 
 
-    Mat img1 = imread("pano1.jpg" , IMREAD_COLOR);
-    Mat img2 = imread("pano2.jpg" , IMREAD_COLOR);
 
-
-    cv::resize(img1, img1, Size(), 0.3, 0.3);
-    cv::resize(img2, img2, Size(), 0.3, 0.3);
-
-    test->findOmniPose(img1,img2);
 
 
 

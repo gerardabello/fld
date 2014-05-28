@@ -6,6 +6,9 @@
 //L'ordenació es fa amb els punts de la primera imatge. No ha de diferir molt de els punts de la segona.
 bool sortByX(const pair<Point2f, Point2f>& pt1, const pair<Point2f, Point2f>& pt2) { return pt1.first.x < pt2.first.x; }
 
+//L'ordenació es fa amb els punts de la primera imatge. No ha de diferir molt de els punts de la segona.
+bool sortByAngleDif(const pair<float,float>& pt1, const pair<float,float>& pt2) { return pt1.second < pt2.second; }
+
 
 //L'ordenació es fa amb els punts de la primera imatge. No ha de diferir molt de els punts de la segona.
 bool sortByMeanX(pair < pair <float,float> , float > pt1 , pair < pair <float,float> , float > pt2) { return pt1.first.first < pt2.first.first; }
@@ -15,9 +18,9 @@ void CFld::findOmniPose(Mat& img1, Mat& img2){
     /*
      * Get features
      */
-    
+
     Ptr<FeatureDetector> p_detector = FeatureDetector::create("SIFT");
-    
+
     Ptr<DescriptorExtractor> p_descriptor = DescriptorExtractor::create("SIFT");
     Ptr<DescriptorMatcher> p_matcher = DescriptorMatcher::create("BruteForce");
 
@@ -40,7 +43,7 @@ void CFld::findOmniPose(Mat& img1, Mat& img2){
     cout << "Matches: " << p_matches.size() << endl;
     vector<cv::DMatch> good_matches;
 
-    for (int i = 0; i < p_matches.size(); ++i)
+    for (unsigned int i = 0; i < p_matches.size(); ++i)
     {
         //cout << "comparison : " << p_matches[i][0].distance << " < " << pose_GoodMatchesRatio * p_matches[i][1].distance << endl;
         if (p_matches[i][0].distance < pose_GoodMatchesRatio * p_matches[i][1].distance)
@@ -78,125 +81,167 @@ void CFld::findOmniPose(Mat& img1, Mat& img2){
     float imw = img1.cols;
 
     //angles
-    float a1, a2, dif;
+
+    Point2f p1,p2;
 
 
-    //intermidiate memory for points
-    Point2f pa_1, pa_2, pb_1, pb_2;
 
     //result
-    vector< pair < pair <float,float> , float > > angleDifs;
-
-    //Calculating aproximately the number of keypoits that should be in the range of pose_PairMaxAngle,
-    //  I decide how many pairs back I search for every pair.
-    int lookBack = (int)((pose_PairMaxAngle/360.0)*ptsPair.size());
+    vector<float> angle1, angle2;
 
 
     cout << "Points: " << ptsPair.size() << endl;
 
-    for (int i = 0; i < ptsPair.size(); ++i)
+    for (unsigned int i = 0; i < ptsPair.size(); ++i)
     {
-        pa_1 = ptsPair.at(i).first ;
-        pa_2 = ptsPair.at(i).second;
-
-        cout << " -- new point -- " << endl;
-        cout << "point a: " << "from 1: " << pa_1.x/imw*360 << " - from 2: " << pa_2.x/imw*360 << endl;
-        
-
-        for (int j = 0; j < ptsPair.size(); ++j)
-            //for (int j = (i>=lookBack? i-lookBack : 0); j < ptsPair.size()-i; ++j)
-        {
-
-            if(i==j) continue;
+        p1 = ptsPair.at(i).first ;
+        p2 = ptsPair.at(i).second;
 
 
-
-            pb_1 = ptsPair.at(j).first;
-            pb_2 = ptsPair.at(j).second;
-
-            cout << "    point b: " << "from 1: " << pb_1.x/imw*360 << " - from 2: " << pb_2.x/imw*360 << endl;
-
-            a1 = abs( pa_1.x - pb_1.x );
-            a2 = abs( pa_2.x - pb_2.x );
-
-
-            a1 = a1/imw*360;
-            a2 = a2/imw*360;
-
-            if(a1 > pose_PairMaxAngle || a2 > pose_PairMaxAngle) continue;
-
-
-            dif = abs(a1-a2);
-
-            cout << "    a1: " << a1 << ", a2: " << a2 << ", dif: " << dif <<  endl;
-
-            angleDifs.push_back( 
-                    pair < pair <float,float> , float > (
-                        pair <float,float>(
-                            abs( pa_1.x + pb_1.x )/2/imw*360,
-                            abs( pa_2.x + pb_2.x )/2/imw*360
-                            ),
-                        dif
-                        )
-                    );
-
-
-        }
+        angle1.push_back(p1.x /imw*360);
+        angle2.push_back(p2.x /imw*360);
 
     }
-
-    sort(angleDifs.begin(), angleDifs.end(), sortByMeanX);
 
 
     float mean = 0;
-    int count = 0;
-    int last = 0;
-    int current;
-    float x, d;
+    float a1, a2;
+    int delta = 2;
+    assert(360%delta == 0);
+    int ds = 360/delta;
 
-    int divisions = 10;
-    int difs[36] = {0};
+    int minAngle;
+    float meanMinAngle = 1000;
 
-    ofstream myfile;
-    myfile.open ("data_pose");
-
-
-    for (int i = 0; i < angleDifs.size(); ++i)
+    for (int i = 0; i < ds; ++i)
     {
 
-        x = angleDifs.at(i).first.first;
-        d = angleDifs.at(i).second;
 
-        myfile << x << ", " << d << endl;
-
-        current = (int)(x / divisions);
+        for (unsigned int j = 0; j < angle1.size(); ++j){
 
 
-        if(current != last){
-            if(count > 0) difs[last] = difs[last]/count;
+            a2 = angle2.at(j);
+            a1 = angle1.at(j)+(i*delta);
 
+            if(a1>360)a1-=360;
 
-            //cout << difs[last] << endl;
-
-            count = 0;
-            last = current;
+            mean += abs(a1-a2);
 
         }
 
-        difs[current] += d;
-        count++;
+
+        mean = mean/angle1.size();
+
+        //cout << mean << endl;
+
+        if(mean < meanMinAngle){
+            minAngle = i*delta;
+            meanMinAngle = mean;
+        }
+        mean = 0;
+
+    }
+
+    cout << "Angle:  " << minAngle << endl;
+
+
+    float minDirAngle;
+    float meanMinDirAngle;
+    float angleDif;
+
+    vector< pair<float, float> > posAngle;
+
+
+    for (unsigned int i = 0; i < angle1.size(); ++i){
+
+
+        a2 = angle2.at(i);
+        a1 = angle1.at(i)+(minAngle);
+        if(a1>360)a1-=360;
+
+        angleDif = abs(a1-a2);
+
+        posAngle.push_back(pair<float,float>(angle1.at(i),angleDif));
 
     }
 
 
-    myfile.close();
+    sort(posAngle.begin(), posAngle.end(), sortByAngleDif);
+
+    // DEBUG
+    for (unsigned int i = 0; i < posAngle.size(); ++i){
+
+        cout << posAngle.at(i).second << "-" << posAngle.at(i).first << endl;
+
+    }
+    
+    mean = 0;
+
+    /*
+    float weightS = 0;
+    float maxDif = (posAngle.at(posAngle.size()-1).second)/30;
+
+    //cout << "maxDif: " <<  maxDif << endl;
+    int c = 0;
 
 
+    //calcular mean
+    //for (unsigned int c = 0; c < posAngle.size()/8; ++c){
+    while(1){
+
+
+        if( posAngle.at(c).second > maxDif) break;
+
+        // TODO treure outliers amb RANSAC
+        mean += posAngle.at(c).first*(1/posAngle.at(c).second);
+        weightS += 1/posAngle.at(c).second;
+
+        c++;
+
+    }
+
+    float direction = mean/weightS;
+
+    cout << "Direction: " << direction << endl;
+
+*/
+    delta = 60;
+    assert(360%delta == 0);
+    ds = 360/delta;
+    
+    int weightS = 0;
+
+    for (int i = 0; i < ds; ++i)
+    {
+
+
+        mean = 0;
+        for (unsigned int j = 0; j < posAngle.size(); ++j){
+            if(posAngle.at(j).first >= i*delta && posAngle.at(j).first < (i+1)*delta){
+                mean += posAngle.at(j).second;
+                weightS++;
+            }
+        }
+
+
+        mean = mean/weightS;
+        weightS=0;
+
+
+        cout << delta*i << " : " << mean << endl;
+
+
+    }
+
+
+
+
+    //show matches
 
 
     Mat img_matches;
     drawMatches(img1, keypoints1, img2, keypoints2, good_matches, img_matches,Scalar::all(-1), Scalar::all(-1), vector<char>(), 2);
-
+    imwrite( "./result.jpg", img_matches );
     //cv::resize(img_matches, img_matches, Size(), 0.5, 0.5);
 
     imshow("matches", img_matches);
@@ -204,8 +249,6 @@ void CFld::findOmniPose(Mat& img1, Mat& img2){
     {
         cout << "esc key is pressed by user" << endl;
     }
-
-
 
 
 

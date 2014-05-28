@@ -79,15 +79,7 @@ bool readOmniFrame(vector<VideoCapture> vcv, vector<Mat>& iv){
 }
 
 
-
-bool combineImages(vector<VideoCapture> vcv, Mat &result){
-
-
-    vector<Mat> iv;
-    bool a = readOmniFrame(vcv, iv);
-
-    if(!a) return false;
-
+void combinator( vector<Mat>& iv, Mat &result){
     int h,w;
     int i;
 
@@ -106,29 +98,48 @@ bool combineImages(vector<VideoCapture> vcv, Mat &result){
         i++;
     }
 
-    //imshow("SideBySide", combine); //show the frame in "MyVideo" window
-
     result = combine.clone();
 
-    if(waitKey(30) == 27) //wait for 'esc' key press for 30 ms. If 'esc' key is pressed, break loop
-    {
-        cout << "esc key is pressed by user" << endl;
-        return false;
-    }
+}
 
+
+
+bool combineImages(vector<VideoCapture> vcv, Mat &result){
+
+
+    vector<Mat> iv;
+    bool a = readOmniFrame(vcv, iv);
+
+    if(!a) return false;
+
+    combinator(iv,result);
 
     return true;
+}
+
+
+void getOnePano(string path, string num, Mat& result){
+
+    vector<Mat> iv;
+
+    iv.push_back( imread(path+"/fl/frame"+num+".jpg" , IMREAD_COLOR));
+    iv.push_back( imread(path+"/fc/frame"+num+".jpg" , IMREAD_COLOR));
+    iv.push_back( imread(path+"/fr/frame"+num+".jpg" , IMREAD_COLOR));
+    iv.push_back( imread(path+"/rr/frame"+num+".jpg" , IMREAD_COLOR));
+    iv.push_back( imread(path+"/rl/frame"+num+".jpg" , IMREAD_COLOR));
+
+    combinator(iv,result);
 }
 
 
 void getVideoCaptureVector(string path, vector<VideoCapture>& vcv){
 
 
+    VideoCapture cap5(path + string("/fl/frame%4d.jpg")); // open the video file for reading
     VideoCapture cap1(path + string("/fc/frame%4d.jpg")); // open the video file for reading
     VideoCapture cap2(path + string("/fr/frame%4d.jpg")); // open the video file for reading
     VideoCapture cap3(path + string("/rr/frame%4d.jpg")); // open the video file for reading
     VideoCapture cap4(path + string("/rl/frame%4d.jpg")); // open the video file for reading
-    VideoCapture cap5(path + string("/fl/frame%4d.jpg")); // open the video file for reading
 
 
     vcv.push_back(cap1);
