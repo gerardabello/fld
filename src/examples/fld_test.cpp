@@ -315,9 +315,15 @@ void testMyPose(CFld *test){
 
     Mat img1, img2;
 
+    /*
     getOnePano(trainDir, "0687", img1);
     getOnePano(trainDir, "0700", img2);
-
+    */
+    
+    
+    getOnePano(trainDir, "0050", img1);
+    getOnePano(trainDir, "0090", img2);
+    
 
     cv::resize(img1, img1, Size(), 0.6, 0.6);
     cv::resize(img2, img2, Size(), 0.6, 0.6);

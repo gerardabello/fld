@@ -13,6 +13,55 @@ bool sortByAngleDif(const pair<float,float>& pt1, const pair<float,float>& pt2) 
 //L'ordenació es fa amb els punts de la primera imatge. No ha de diferir molt de els punts de la segona.
 bool sortByMeanX(pair < pair <float,float> , float > pt1 , pair < pair <float,float> , float > pt2) { return pt1.first.first < pt2.first.first; }
 
+
+int minSquaresSin( vector< pair<float, float> > & posAngle){
+    float mean = 0;
+
+
+    int delta = 10;
+    assert(360%delta == 0);
+    int ds = 360/delta;
+    
+    int weightS = 0;
+    float dif;
+
+    int minDirection;
+    float minDirectionMean = 10000000000000;
+
+    for (int i = 0; i < ds; ++i)
+    {
+
+
+        mean = 0;
+        for (unsigned int j = 0; j < posAngle.size(); ++j){
+
+
+                dif = posAngle.at(j).second - 20*sin((posAngle.at(j).first + delta * i) / 360.0 * 2 * 3.1415689);
+                if(dif<60){
+                    mean += dif*dif;
+                    weightS++;
+                }
+        }
+
+
+        if(mean<=minDirectionMean){
+            minDirection = delta*i;
+            minDirectionMean = mean;
+        }
+
+        //cout << delta*i << " : " << mean << endl;
+
+        weightS=0;
+        mean = 0;
+
+    }
+
+    minDirection += 180;
+    if(minDirection>=360) minDirection -= 360;
+
+    return minDirection;
+}
+
 void CFld::findOmniPose(Mat& img1, Mat& img2){
 
     /*
@@ -145,8 +194,7 @@ void CFld::findOmniPose(Mat& img1, Mat& img2){
     cout << "Angle:  " << minAngle << endl;
 
 
-    float minDirAngle;
-    float meanMinDirAngle;
+
     float angleDif;
 
     vector< pair<float, float> > posAngle;
@@ -159,7 +207,7 @@ void CFld::findOmniPose(Mat& img1, Mat& img2){
         a1 = angle1.at(i)+(minAngle);
         if(a1>360)a1-=360;
 
-        angleDif = abs(a1-a2);
+        angleDif = a1-a2;
 
         posAngle.push_back(pair<float,float>(angle1.at(i),angleDif));
 
@@ -171,70 +219,16 @@ void CFld::findOmniPose(Mat& img1, Mat& img2){
     // DEBUG
     for (unsigned int i = 0; i < posAngle.size(); ++i){
 
-        cout << posAngle.at(i).second << "-" << posAngle.at(i).first << endl;
-
-    }
-    
-    mean = 0;
-
-    /*
-    float weightS = 0;
-    float maxDif = (posAngle.at(posAngle.size()-1).second)/30;
-
-    //cout << "maxDif: " <<  maxDif << endl;
-    int c = 0;
-
-
-    //calcular mean
-    //for (unsigned int c = 0; c < posAngle.size()/8; ++c){
-    while(1){
-
-
-        if( posAngle.at(c).second > maxDif) break;
-
-        // TODO treure outliers amb RANSAC
-        mean += posAngle.at(c).first*(1/posAngle.at(c).second);
-        weightS += 1/posAngle.at(c).second;
-
-        c++;
-
-    }
-
-    float direction = mean/weightS;
-
-    cout << "Direction: " << direction << endl;
-
-*/
-    delta = 60;
-    assert(360%delta == 0);
-    ds = 360/delta;
-    
-    int weightS = 0;
-
-    for (int i = 0; i < ds; ++i)
-    {
-
-
-        mean = 0;
-        for (unsigned int j = 0; j < posAngle.size(); ++j){
-            if(posAngle.at(j).first >= i*delta && posAngle.at(j).first < (i+1)*delta){
-                mean += posAngle.at(j).second;
-                weightS++;
-            }
-        }
-
-
-        mean = mean/weightS;
-        weightS=0;
-
-
-        cout << delta*i << " : " << mean << endl;
-
+        cout << posAngle.at(i).second << " : " << posAngle.at(i).first << endl;
 
     }
 
 
 
+    int direction = minSquaresSin(posAngle);
+
+
+    cout << "Direction:  " << direction << endl;
 
     //show matches
 

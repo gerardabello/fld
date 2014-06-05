@@ -33,7 +33,7 @@ class CFld
     const static int pose_PairMaxAngle = 150;
 
     //Ratio between the best match and the second best match to consider it a good match
-    constexpr static float pose_GoodMatchesRatio = 0.55;
+    constexpr static float pose_GoodMatchesRatio = 0.7;
 
 
     public:
