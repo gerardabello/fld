@@ -102,8 +102,8 @@ void testPose(CFld *test){
 
     Mat img1, img2;
 
-    img1 = imread(imgDir+"frame0627.jpg" , IMREAD_COLOR);
-    img2 = imread(imgDir+"frame0657.jpg" , IMREAD_COLOR);
+    img1 = imread(imgDir+"frame0632.jpg" , IMREAD_COLOR);
+    img2 = imread(imgDir+"frame0637.jpg" , IMREAD_COLOR);
 
 
     namedWindow( "Pano", WINDOW_AUTOSIZE ); // Create a window for display.
@@ -140,6 +140,15 @@ void testStrech(CFld *test){
 }
 
 
+class mylistener : public FmListener{
+
+    public:
+
+        virtual void newPose (float dir, float a){
+            cout << "pose: d:" << dir << " a: " << a << endl;
+        }
+
+};
 
 
 
@@ -147,6 +156,9 @@ void testFabmap(CFld *test){
     string dataDir = "../dat/frames/data";
     string trainDir = "../dat/frames/train";
     string mainDir = "../dat/frames";
+
+
+    test->setListener(new mylistener);
 
     Mat vocab;
     Mat vocab1, vocab2;
@@ -316,21 +328,25 @@ void testMyPose(CFld *test){
     Mat img1, img2;
 
     /*
-    getOnePano(trainDir, "0687", img1);
-    getOnePano(trainDir, "0700", img2);
-    */
-    
-    
-    getOnePano(trainDir, "0050", img1);
-    getOnePano(trainDir, "0090", img2);
-    
+       getOnePano(trainDir, "0687", img1);
+       getOnePano(trainDir, "0700", img2);
+       */
 
-    cv::resize(img1, img1, Size(), 0.6, 0.6);
-    cv::resize(img2, img2, Size(), 0.6, 0.6);
+
+    getOnePano(trainDir, "0632", img1);
+    getOnePano(trainDir, "0637", img2);
+
+
+    float scale = 0.7;
+
+    cv::resize(img1, img1, Size(), scale, scale);
+    cv::resize(img2, img2, Size(), scale, scale);
 
     test->findOmniPose(img1,img2);
 
 }
+
+
 
 int main(int argc, char *argv[])
 {
@@ -345,8 +361,9 @@ int main(int argc, char *argv[])
     //testPose(test);
     //testStrech(test);
     //testSfM();
-    //testFabmap(test);
-    testMyPose(test);
+    testFabmap(test);
+    //testMyPose(test);
+
 
 
 

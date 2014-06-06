@@ -63,9 +63,35 @@ void CFld::addFrame(Mat frame){
 
     checkMatch(imatches);
 
+
+
+    //calc pose
+
+    int i1,i2;
+    vector<of2::IMatch>::iterator l;
+    for(l = imatches.begin(); l != imatches.end(); l++) {
+
+        if(l->imgIdx < 0) {
+            i1 = l->queryIdx+iframe;
+            i2 = l->queryIdx;
+        } else {
+            i1 = l->queryIdx+iframe;
+            i2 = l->imgIdx;
+        }
+
+        pair<float,float> result = findOmniPose( past_images.at(i1), past_images.at(i2) );
+
+        listener->newPose(result.first,result.second);
+
+    }
+
+
+    //fi calc pose
+
     matches.push_back(imatches);
 
     iframe++;
+
 }
 
 Mat CFld::genFrameData(Mat frame){
@@ -104,6 +130,12 @@ Mat CFld::getMatrix(){
     return matrix;
 }
 
+
+void CFld::setListener(FmListener* l){
+
+    listener = l;
+
+}
 
 
 /*Mat CFld::addTrainImgVec(vector<Mat>& imgs){
@@ -383,14 +415,19 @@ void CFld::checkMatch(vector<of2::IMatch> & v  ){
             if (abs(i1-i2)< same_place_margin) return true;
             //if (!geometricCheck( past_images.at(i1), past_images.at(i2))) return true;
 
+            /*
             imwrite( "pano1.jpg", past_images.at(i1) );
             imwrite( "pano2.jpg", past_images.at(i2) );
+
+            */
     });
 
 
 
-
     v.erase( remover, v.end());
+
+
+
 
 }
 

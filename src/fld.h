@@ -14,6 +14,7 @@ using namespace cv;
 using namespace std;
 
 #include "utils.h"
+#include "fmlistener.h"
 //#include "mocv/FindCameraMatrices.h"
 //
 
@@ -113,9 +114,14 @@ class CFld
 
         bool geometricCheck( Mat &img1, Mat &img2);
 
-        void findOmniPose(Mat &img1, Mat &img2);
+        pair<float,float> findOmniPose(Mat &img1, Mat &img2);
+
+        void setListener(FmListener* l);
 
         //private:
+        //
+
+        FmListener* listener;
 
         float consider_match;
         float maxSigma;
@@ -200,6 +206,9 @@ class CFld
 
 
         void KeyPointsToPoints(const vector<KeyPoint>& kps, vector<Point2f>& ps);
+
+
+
 
 };
 

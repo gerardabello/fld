@@ -37,7 +37,7 @@ int minSquaresSin( vector< pair<float, float> > & posAngle){
 
 
                 dif = posAngle.at(j).second - 20*sin((posAngle.at(j).first + delta * i) / 360.0 * 2 * 3.1415689);
-                if(dif<60){
+                if(dif<80){
                     mean += dif*dif;
                     weightS++;
                 }
@@ -62,7 +62,7 @@ int minSquaresSin( vector< pair<float, float> > & posAngle){
     return minDirection;
 }
 
-void CFld::findOmniPose(Mat& img1, Mat& img2){
+pair<float,float> CFld::findOmniPose(Mat& img1, Mat& img2){
 
     /*
      * Get features
@@ -89,7 +89,7 @@ void CFld::findOmniPose(Mat& img1, Mat& img2){
 
 
 
-    cout << "Matches: " << p_matches.size() << endl;
+    //cout << "Matches: " << p_matches.size() << endl;
     vector<cv::DMatch> good_matches;
 
     for (unsigned int i = 0; i < p_matches.size(); ++i)
@@ -101,7 +101,7 @@ void CFld::findOmniPose(Mat& img1, Mat& img2){
         }
     }
 
-    cout << "Good Matches: " << good_matches.size() << endl;
+    //cout << "Good Matches: " << good_matches.size() << endl;
 
     vector< pair<Point2f, Point2f> > ptsPair;
     for( unsigned int i = 0; i < good_matches.size(); i++ )
@@ -191,7 +191,7 @@ void CFld::findOmniPose(Mat& img1, Mat& img2){
 
     }
 
-    cout << "Angle:  " << minAngle << endl;
+    //cout << "Angle:  " << minAngle << endl;
 
 
 
@@ -219,7 +219,7 @@ void CFld::findOmniPose(Mat& img1, Mat& img2){
     // DEBUG
     for (unsigned int i = 0; i < posAngle.size(); ++i){
 
-        cout << posAngle.at(i).second << " : " << posAngle.at(i).first << endl;
+        //cout << posAngle.at(i).second << " : " << posAngle.at(i).first << endl;
 
     }
 
@@ -228,10 +228,11 @@ void CFld::findOmniPose(Mat& img1, Mat& img2){
     int direction = minSquaresSin(posAngle);
 
 
-    cout << "Direction:  " << direction << endl;
+    //cout << "Direction:  " << direction << endl;
 
     //show matches
 
+    /*
 
     Mat img_matches;
     drawMatches(img1, keypoints1, img2, keypoints2, good_matches, img_matches,Scalar::all(-1), Scalar::all(-1), vector<char>(), 2);
@@ -244,8 +245,10 @@ void CFld::findOmniPose(Mat& img1, Mat& img2){
         cout << "esc key is pressed by user" << endl;
     }
 
+    */
 
 
+    return pair<float,float>(minAngle,direction);
 
 }
 
