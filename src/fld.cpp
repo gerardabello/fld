@@ -42,7 +42,7 @@ void CFld::addTrainData(Mat td){
 
 
 int CFld::iniFabMap(){
-    fabmap = new of2::FabMap2(tree, 0.39, 0, of2::FabMap::SAMPLED |
+    fabmap = new of2::FabMap1(tree, 0.39, 0, of2::FabMap::MEAN_FIELD |
                 of2::FabMap::CHOW_LIU);
     fabmap->addTraining(trainData);
 
@@ -160,7 +160,7 @@ Mat CFld::addTrainVideo(VideoCapture& vc){
 
 Mat CFld::addVocabVideo(VideoCapture& vc){
     Mat v;
-    v = CFld::genVocab(detector, extractor, vc, 20, 0.45);
+    v = CFld::genVocab(detector, extractor, vc, 40, 0.45);
     addVocabulary(v);
     return v;
 }

@@ -191,7 +191,7 @@ pair<float,float> CFld::findOmniPose(Mat& img1, Mat& img2){
 
     }
 
-    //cout << "Angle:  " << minAngle << endl;
+    cout << "Angle:  " << minAngle << endl;
 
 
 
@@ -228,7 +228,7 @@ pair<float,float> CFld::findOmniPose(Mat& img1, Mat& img2){
     int direction = minSquaresSin(posAngle);
 
 
-    //cout << "Direction:  " << direction << endl;
+    cout << "Direction:  " << direction << endl;
 
     //show matches
 

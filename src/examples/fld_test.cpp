@@ -161,24 +161,32 @@ void testFabmap(CFld *test){
     test->setListener(new mylistener);
 
     Mat vocab;
-    Mat vocab1, vocab2;
+    Mat vocab1, vocab2, vocab3, vocab4, vocab5;
     bool vocabdatasaved = openMatFileIfExists(mainDir + string("/vocab"),vocab); 
     if(!vocabdatasaved){
         cout << "Generating vocab" << endl;
         VideoCapture cap_train_voca1(trainDir + string("/fc/frame%4d.jpg")); // open the video file for reading
         VideoCapture cap_train_voca2(trainDir + string("/rr/frame%4d.jpg")); // open the video file for reading
+        VideoCapture cap_train_voca3(trainDir + string("/rl/frame%4d.jpg")); // open the video file for reading
+        VideoCapture cap_train_voca4(trainDir + string("/fr/frame%4d.jpg")); // open the video file for reading
+        VideoCapture cap_train_voca5(trainDir + string("/fl/frame%4d.jpg")); // open the video file for reading
+
 
         vocab1 = test->addVocabVideo(cap_train_voca1);
         vocab2 = test->addVocabVideo(cap_train_voca2);
+        vocab3 = test->addVocabVideo(cap_train_voca3);
+        vocab4 = test->addVocabVideo(cap_train_voca4);
+        vocab5 = test->addVocabVideo(cap_train_voca5);
 
         vocab.push_back(vocab1);
         vocab.push_back(vocab2);
+        vocab.push_back(vocab3);
+        vocab.push_back(vocab4);
+        vocab.push_back(vocab5);
 
         test->addVocabulary(vocab);
 
         saveMatFile(mainDir + string("/vocab"), vocab);
-        saveMatFile(mainDir + string("/vocab1"), vocab1);
-        saveMatFile(mainDir + string("/vocab2"), vocab2);
     }else{
 
         cout << "Vocab loaded from file" << endl;
@@ -201,7 +209,7 @@ void testFabmap(CFld *test){
 
         Mat temp_train_data;
         int i_train = 0;
-        int steps_train = 20;
+        int steps_train = 40;
         while(1)
         {
             i_train++;
@@ -323,7 +331,7 @@ void testFabmap(CFld *test){
 
 void testMyPose(CFld *test){
 
-    string trainDir = "../dat/frames/train";
+    string trainDir = "../dat/frames/train_copy";
 
     Mat img1, img2;
 
@@ -333,8 +341,8 @@ void testMyPose(CFld *test){
        */
 
 
-    getOnePano(trainDir, "0632", img1);
-    getOnePano(trainDir, "0637", img2);
+    getOnePano(trainDir, "0050", img1);
+    getOnePano(trainDir, "0092", img2);
 
 
     float scale = 0.7;
