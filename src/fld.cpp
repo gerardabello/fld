@@ -5,7 +5,7 @@
 CFld::CFld(){
     detector = Ptr<FeatureDetector>(
             new DynamicAdaptedFeatureDetector(
-                AdjusterAdapter::create("STAR"), 130, 150, 5));
+                AdjusterAdapter::create("SURF"), 130, 150, 5));
     extractor = Ptr<DescriptorExtractor>(
             new SurfDescriptorExtractor(1000, 4, 2, false, true));
     matcher = DescriptorMatcher::create("FlannBased");
@@ -42,7 +42,7 @@ void CFld::addTrainData(Mat td){
 
 
 int CFld::iniFabMap(){
-    fabmap = new of2::FabMap1(tree, 0.39, 0, of2::FabMap::MEAN_FIELD |
+    fabmap = new of2::FabMap2(tree, 0.39, 0, of2::FabMap::SAMPLED |
                 of2::FabMap::CHOW_LIU);
     fabmap->addTraining(trainData);
 
@@ -79,9 +79,14 @@ void CFld::addFrame(Mat frame){
             i2 = l->imgIdx;
         }
 
-        pair<float,float> result = findOmniPose( past_images.at(i1), past_images.at(i2) );
+        float angle, direction;
+        int features;
 
-        listener->newPose(result.first,result.second);
+        findOmniPose( past_images.at(i1), past_images.at(i2), angle, direction, features );
+
+        if(features >= CFld::min_features){
+            listener->newPose(angle,direction);
+        }
 
     }
 
@@ -160,7 +165,7 @@ Mat CFld::addTrainVideo(VideoCapture& vc){
 
 Mat CFld::addVocabVideo(VideoCapture& vc){
     Mat v;
-    v = CFld::genVocab(detector, extractor, vc, 40, 0.45);
+    v = CFld::genVocab(detector, extractor, vc, 20, 0.45);
     addVocabulary(v);
     return v;
 }
@@ -412,7 +417,7 @@ void CFld::checkMatch(vector<of2::IMatch> & v  ){
             }
 
 
-            if (abs(i1-i2)< same_place_margin) return true;
+            if (abs(i1-i2)<= same_place_margin) return true;
             //if (!geometricCheck( past_images.at(i1), past_images.at(i2))) return true;
 
             /*

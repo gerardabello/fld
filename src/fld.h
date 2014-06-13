@@ -35,6 +35,7 @@ class CFld
 
     //Ratio between the best match and the second best match to consider it a good match
     constexpr static float pose_GoodMatchesRatio = 0.7;
+    constexpr static int min_features = 60;
 
 
     public:
@@ -114,7 +115,7 @@ class CFld
 
         bool geometricCheck( Mat &img1, Mat &img2);
 
-        pair<float,float> findOmniPose(Mat &img1, Mat &img2);
+        void findOmniPose(Mat& img1, Mat& img2, float& out_angle, float& out_dir, int& num_features);
 
         void setListener(FmListener* l);
 
@@ -127,7 +128,7 @@ class CFld
         float maxSigma;
 
         //Margin in frames thats the minimum to consider to matches to be from diferent places.
-        static const int same_place_margin = 30;
+        static const int same_place_margin = 5;
 
 
         Ptr<FeatureDetector> detector;

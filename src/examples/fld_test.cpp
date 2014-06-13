@@ -153,9 +153,11 @@ class mylistener : public FmListener{
 
 
 void testFabmap(CFld *test){
-    string dataDir = "../dat/frames/data";
-    string trainDir = "../dat/frames/train";
+    string dataDir = "../dat/frames/test_2";
+    string trainDir = "../dat/frames/data";
     string mainDir = "../dat/frames";
+
+
 
 
     test->setListener(new mylistener);
@@ -165,6 +167,7 @@ void testFabmap(CFld *test){
     bool vocabdatasaved = openMatFileIfExists(mainDir + string("/vocab"),vocab); 
     if(!vocabdatasaved){
         cout << "Generating vocab" << endl;
+
         VideoCapture cap_train_voca1(trainDir + string("/fc/frame%4d.jpg")); // open the video file for reading
         VideoCapture cap_train_voca2(trainDir + string("/rr/frame%4d.jpg")); // open the video file for reading
         VideoCapture cap_train_voca3(trainDir + string("/rl/frame%4d.jpg")); // open the video file for reading
@@ -273,7 +276,7 @@ void testFabmap(CFld *test){
 
     cout << "Initilizing FabMap stream" << endl;
     int i = 0;
-    int steps = 20;
+    int steps = 10;
     while(1)
     {
         i++;
@@ -293,9 +296,8 @@ void testFabmap(CFld *test){
 
         cv::resize(sframe, sframe, Size(), 0.5, 0.5);
 
-        if(i%steps==0){
+        if((i+3)%steps==0){
 
-            //imshow("Test Data", sframe); //show the frame in "MyVideo" window
 
             if(waitKey(30) == 27) //wait for 'esc' key press for 30 ms. If 'esc' key is pressed, break loop
             {
@@ -305,6 +307,9 @@ void testFabmap(CFld *test){
 
             cout << "FabMap: Adding Frame " << i << endl;
             test->addFrame(sframe);
+
+            cv::resize(sframe, sframe, Size(), 0.3, 0.3);
+            imshow("Test Data", sframe); //show the frame in "MyVideo" window
 
             Mat result;
             result = test->getMatrix();
@@ -350,7 +355,10 @@ void testMyPose(CFld *test){
     cv::resize(img1, img1, Size(), scale, scale);
     cv::resize(img2, img2, Size(), scale, scale);
 
-    test->findOmniPose(img1,img2);
+    float angle, direction;
+    int features;
+
+    test->findOmniPose(img1,img2, angle, direction, features);
 
 }
 

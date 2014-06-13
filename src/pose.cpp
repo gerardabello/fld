@@ -62,7 +62,9 @@ int minSquaresSin( vector< pair<float, float> > & posAngle){
     return minDirection;
 }
 
-pair<float,float> CFld::findOmniPose(Mat& img1, Mat& img2){
+
+
+void CFld::findOmniPose(Mat& img1, Mat& img2, float& out_angle, float& out_dir, int& num_features){
 
     /*
      * Get features
@@ -140,6 +142,7 @@ pair<float,float> CFld::findOmniPose(Mat& img1, Mat& img2){
 
 
     cout << "Points: " << ptsPair.size() << endl;
+    num_features = ptsPair.size();
 
     for (unsigned int i = 0; i < ptsPair.size(); ++i)
     {
@@ -191,8 +194,9 @@ pair<float,float> CFld::findOmniPose(Mat& img1, Mat& img2){
 
     }
 
-    cout << "Angle:  " << minAngle << endl;
+    //cout << "Angle:  " << minAngle << endl;
 
+    out_angle = minAngle;
 
 
     float angleDif;
@@ -228,27 +232,28 @@ pair<float,float> CFld::findOmniPose(Mat& img1, Mat& img2){
     int direction = minSquaresSin(posAngle);
 
 
-    cout << "Direction:  " << direction << endl;
+    //cout << "Direction:  " << direction << endl;
+    out_dir = direction;
 
     //show matches
 
-    /*
 
-    Mat img_matches;
-    drawMatches(img1, keypoints1, img2, keypoints2, good_matches, img_matches,Scalar::all(-1), Scalar::all(-1), vector<char>(), 2);
-    imwrite( "./result.jpg", img_matches );
-    //cv::resize(img_matches, img_matches, Size(), 0.5, 0.5);
+    if(num_features >= CFld::min_features){
 
-    imshow("matches", img_matches);
-    if(waitKey(30000) == 27) //wait for 'esc' key press for 30 ms. If 'esc' key is pressed, break loop
-    {
-        cout << "esc key is pressed by user" << endl;
+        Mat img_matches;
+        drawMatches(img1, keypoints1, img2, keypoints2, good_matches, img_matches,Scalar::all(-1), Scalar::all(-1), vector<char>(), 2);
+        imwrite( "./result.jpg", img_matches );
+        //cv::resize(img_matches, img_matches, Size(), 0.5, 0.5);
+
+        cv::resize(img_matches, img_matches, Size(), 0.5, 0.5);
+
+        imshow("matches", img_matches);
+        if(waitKey(30000) == 27) //wait for 'esc' key press for 30 ms. If 'esc' key is pressed, break loop
+        {
+            cout << "esc key is pressed by user" << endl;
+        }
+
     }
-
-    */
-
-
-    return pair<float,float>(minAngle,direction);
 
 }
 
