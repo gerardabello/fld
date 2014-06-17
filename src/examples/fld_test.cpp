@@ -294,7 +294,7 @@ void testFabmap(CFld *test){
             break;
         }
 
-        cv::resize(sframe, sframe, Size(), 0.5, 0.5);
+        //cv::resize(sframe, sframe, Size(), 0.5, 0.5);
 
         if((i+3)%steps==0){
 
@@ -308,7 +308,7 @@ void testFabmap(CFld *test){
             cout << "FabMap: Adding Frame " << i << endl;
             test->addFrame(sframe);
 
-            cv::resize(sframe, sframe, Size(), 0.3, 0.3);
+            cv::resize(sframe, sframe, Size(), 0.2, 0.2);
             imshow("Test Data", sframe); //show the frame in "MyVideo" window
 
             Mat result;
