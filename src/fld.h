@@ -13,12 +13,18 @@
 using namespace cv;
 using namespace std;
 
-#include "utils.h"
-#include "fmlistener.h"
+
 //#include "mocv/FindCameraMatrices.h"
 //
 
 
+//Listener
+
+class FmListener
+{
+    public:
+    virtual void newPose (float dir, float a) = 0;
+};
 
 
 
@@ -212,5 +218,6 @@ class CFld
 
 
 };
+
 
 
