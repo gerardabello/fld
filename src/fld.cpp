@@ -115,7 +115,7 @@ void CFld::addFrame(Mat frame){
 
     checkMatch(imatches);
 
-
+    plistener->newFrame(frame);
 
     //calc pose
 
@@ -140,7 +140,7 @@ void CFld::addFrame(Mat frame){
             cout << "   --  match: " << i1 << "," << i2 << endl;
             imwrite( to_string(i2)+to_string(i1)+"1.jpg",  past_images.at(i1));
             imwrite( to_string(i2)+to_string(i1)+"2.jpg",  past_images.at(i2));
-            listener->newPose(angle,direction);
+            listener->newPose(angle,direction, i1>=i2 ? i2 : i1);
         }
 
     }
@@ -194,6 +194,12 @@ Mat CFld::getMatrix(){
 void CFld::setListener(FmListener* l){
 
     listener = l;
+
+}
+
+void CFld::setPanoListener(PanoListener* l){
+
+    plistener = l;
 
 }
 

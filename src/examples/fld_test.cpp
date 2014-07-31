@@ -425,8 +425,18 @@ class mylistener : public FmListener{
 
     public:
 
-        virtual void newPose (float dir, float a){
-            cout << "pose: d:" << dir << " a: " << a << endl;
+        virtual void newPose (float dir, float a, int m){
+            cout << "pose: d:" << dir << " a: " << a << " m: " << m << endl;
+        }
+
+};
+
+class myplistener : public PanoListener{
+
+    public:
+
+        virtual void newFrame (Mat m){
+            cout << "frame" << endl;
         }
 
 };
@@ -442,6 +452,7 @@ void testFabmap(CFld *test){
 
 
     test->setListener(new mylistener);
+    test->setPanoListener(new myplistener);
 
     Mat vocab;
     Mat vocab1, vocab2, vocab3, vocab4, vocab5;

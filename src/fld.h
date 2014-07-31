@@ -23,10 +23,14 @@ using namespace std;
 class FmListener
 {
     public:
-    virtual void newPose (float dir, float a) = 0;
+    virtual void newPose (float dir, float a, int match) = 0;
 };
 
-
+class PanoListener
+{
+    public:
+    virtual void newFrame (Mat img) = 0;
+};
 
 
 class CFld
@@ -124,11 +128,13 @@ class CFld
         void findOmniPose(Mat& img1, Mat& img2, float& out_angle, float& out_dir, int& num_features);
 
         void setListener(FmListener* l);
+        void setPanoListener(PanoListener* l);
 
         //private:
         //
 
         FmListener* listener;
+        PanoListener* plistener;
 
         float consider_match;
         float maxSigma;
