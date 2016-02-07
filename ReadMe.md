@@ -6,6 +6,8 @@ Detects loops in the trajectory of a robot using an omnidirectional camera.
 
 More information (catalan): http://upcommons.upc.edu/handle/2099.1/25191?locale-attribute=en
 
+Fld is meant as a lib and it's used by supplying omnidirectional images to it. Code is messy with a lot of experiments/tests and little documentation.
+
 Copyright (C) 2009-2010 Institut de Robòtica i Informàtica Industrial, CSIC-UPC.
 Author gabello (gabello@iri.upc.edu)
 All rights reserved.
