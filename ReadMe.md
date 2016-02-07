@@ -1,3 +1,11 @@
+Fabmap based Loop Detection
+===========================
+Master thesis
+
+Detects loops in the trajectory of a robot using an omnidirectional camera.
+
+More information (catalan): http://upcommons.upc.edu/handle/2099.1/25191?locale-attribute=en
+
 Copyright (C) 2009-2010 Institut de Robòtica i Informàtica Industrial, CSIC-UPC.
 Author gabello (gabello@iri.upc.edu)
 All rights reserved.
